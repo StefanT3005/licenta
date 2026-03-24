@@ -1,52 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getPlans,
-  getPlan,
-  createPlan,
-  updatePlan,
-  deletePlan,
-  getSuggestions,
-  getDashboardStats
-} = require('../controllers/planController');
 const { protect } = require('../middleware/authMiddleware');
+const planController = require('../controllers/planController');
 
-// All routes require authentication
-router.use(protect);
+// Public stats (opțional)
+router.get('/stats/dashboard', protect, planController.getDashboardStats);
 
-// @route   GET /api/plans/stats/dashboard
-// @desc    Get dashboard statistics
-// @access  Private
-router.get('/stats/dashboard', getDashboardStats);
+// Main CRUD routes
+router.route('/')
+  .get(protect, planController.getPlans)
+  .post(protect, planController.createPlan);
 
-// @route   GET /api/plans
-// @desc    Get all plans for user
-// @access  Private
-router.get('/', getPlans);
+router.route('/:id')
+  .get(protect, planController.getPlan)
+  .put(protect, planController.updatePlan)
+  .delete(protect, planController.deletePlan);
 
-// @route   POST /api/plans
-// @desc    Create new plan
-// @access  Private
-router.post('/', createPlan);
-
-// @route   GET /api/plans/:id
-// @desc    Get single plan
-// @access  Private
-router.get('/:id', getPlan);
-
-// @route   PUT /api/plans/:id
-// @desc    Update plan
-// @access  Private
-router.put('/:id', updatePlan);
-
-// @route   DELETE /api/plans/:id
-// @desc    Delete plan
-// @access  Private
-router.delete('/:id', deletePlan);
-
-// @route   GET /api/plans/:id/suggestions
-// @desc    Get investment suggestions for plan
-// @access  Private
-router.get('/:id/suggestions', getSuggestions);
+// Contribution route
+router.post('/:id/contribute', protect, planController.addContribution);
 
 module.exports = router;

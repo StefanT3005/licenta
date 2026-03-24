@@ -1,26 +1,40 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getNews,
-  getHeadlines,
-  searchNews
-} = require('../controllers/newsController');
+const axios = require('axios');
 
-// Rutele sunt publice (nu necesită autentificare)
+router.get('/all', async (req, res) => {
+    try {
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+            params: {
+                q: 'stocks OR investing OR markets OR ETF OR crypto OR economy OR finance',
+                language: 'en',
+                sortBy: 'publishedAt',
+                pageSize: 100,
+                // Cerem API-ului exclusiv domeniul cnbc.com
+                domains: 'cnbc.com', 
+                apiKey: process.env.NEWS_API_KEY
+            }
+        });
 
-// @route   GET /api/news
-// @desc    Obține știri financiare filtrate pe categorie
-// @access  Public
-router.get('/', getNews);
+        const articles = response.data.articles
+            // Ne asigurăm că articolul există și nu a fost marcat ca [Removed] de API
+            .filter(a => a.title && a.url && a.title !== '[Removed]') 
+            .slice(0, 60)
+            .map(a => ({
+                title: a.title,
+                description: a.description || '',
+                url: a.url,
+                publishedAt: a.publishedAt,
+                // Din moment ce am cerut doar cnbc.com, forțăm numele să arate curat în interfață
+                source: 'CNBC', 
+                urlToImage: a.urlToImage || null
+            }));
 
-// @route   GET /api/news/headlines
-// @desc    Obține top headlines
-// @access  Public
-router.get('/headlines', getHeadlines);
-
-// @route   GET /api/news/search
-// @desc    Caută știri după cuvinte cheie
-// @access  Public
-router.get('/search', searchNews);
+        res.status(200).json({ totalResults: articles.length, articles });
+    } catch (error) {
+        console.error("Eroare la preluarea stirilor:", error.message);
+        res.status(500).json({ message: 'Eroare la preluarea stirilor', articles: [] });
+    }
+});
 
 module.exports = router;

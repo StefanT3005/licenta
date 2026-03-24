@@ -75,7 +75,7 @@ const Login = () => {
         {/* Logo and Title */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/20">
-            <TrendingUp className="w-8 h-8 text-white" strokeWidth={2.5} />
+            <img src="/src/assets/logo.png" alt="Logo" className="w-7.5 h-7.5" /> 
           </div>
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">TS FinVest</h1>
           <p className="text-slate-400 text-sm">Investește inteligent</p>

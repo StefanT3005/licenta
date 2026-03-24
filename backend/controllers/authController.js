@@ -1,222 +1,357 @@
 const User = require('../models/User');
+const Plan = require('../models/Plan');
+const Preferences = require('../models/UserPreferences');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
-// SIGNUP CONTROLLER
+// Configure email transporter
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD
+    }
+  });
+};
+
+// Send verification email helper
+const sendVerificationEmail = async (user) => {
+  try {
+    // Generate verification token (valid for 24 hours)
+    const verificationToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+      const transporter = createTransporter();
+
+      const mailOptions = {
+        from: `"TS FinVest" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: 'Verifică-ți Email-ul - TS FinVest',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+              .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+              .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Verifică-ți Email-ul</h1>
+              </div>
+              <div class="content">
+                <h2>Bună ${user.name}!</h2>
+                <p>Bun venit la TS FinVest!</p>
+                <p>Pentru a-ți activa contul și a începe să folosești toate funcționalitățile, te rugăm să-ți verifici adresa de email apăsând pe butonul de mai jos:</p>
+                
+                <center>
+                  <a href="${verificationLink}" 
+                     style="display: inline-block; padding: 15px 30px; background-color: #667eea; color: #ffffff !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0;">
+                    Verifică Email-ul
+                  </a>
+                </center>
+                
+                <p>Sau copiază și deschide acest link în browser:</p>
+                <p style="background: #fff; padding: 10px; border: 1px solid #ddd; word-break: break-all;">
+                  ${verificationLink}
+                </p>
+                
+                <div class="warning">
+                  <strong>Important:</strong>
+                  <ul>
+                    <li>Link-ul este valabil pentru <strong>24 de ore</strong></li>
+                    <li>Dacă nu ai creat acest cont, ignoră acest email</li>
+                    <li>După verificare vei putea folosi toate funcționalitățile platformei</li>
+                  </ul>
+                </div>
+                
+                <p>Mulțumim că te-ai alăturat TS FinVest!</p>
+              </div>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} TS FinVest. Toate drepturile rezervate.</p>
+                <p>Acest email a fost generat automat. Te rugăm să nu răspunzi.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log('Email verificare trimis cu succes la:', user.email);
+      return true;
+    } else {
+      console.log('Email Verification Link:', verificationLink);
+      return false;
+    }
+  } catch (error) {
+    console.error('Eroare trimitere email verificare:', error);
+    return false;
+  }
+};
+
+// @desc    Register new user
 exports.signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Verifică dacă user-ul există deja
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ 
-        message: 'Un cont cu acest email există deja' 
-      });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Completează toate câmpurile' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email-ul este deja înregistrat' });
+    }
 
-    // Creează user nou
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      is_admin: false
+      is_admin: false,
+      emailVerified: false
     });
 
-    // Generează token JWT
+    // Send verification email
+    await sendVerificationEmail(user);
+
     const token = jwt.sign(
-      { 
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin
-      },
+      { id: user._id, email: user.email, is_admin: user.is_admin },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
-    // ⚠️ ASTA E PARTEA CRITICĂ - returnează formatul corect!
     res.status(201).json({
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        is_admin: user.is_admin
-      }
+        is_admin: user.is_admin,
+        emailVerified: user.emailVerified
+      },
+      message: 'Cont creat! Verifică email-ul pentru a activa contul.'
     });
-
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ 
-      message: 'Eroare la înregistrare. Încearcă din nou.' 
-    });
+    res.status(500).json({ message: 'Eroare la înregistrare' });
   }
 };
 
-
-// LOGIN CONTROLLER
+// @desc    Login user
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Găsește user-ul
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Completează toate câmpurile' });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ 
-        message: 'Email sau parolă incorectă' 
-      });
+      return res.status(401).json({ message: 'Credențiale invalide' });
     }
 
-    // Verifică parola
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ 
-        message: 'Email sau parolă incorectă' 
-      });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Credențiale invalide' });
     }
 
-    // Generează token
     const token = jwt.sign(
-      { 
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin
-      },
+      { id: user._id, email: user.email, is_admin: user.is_admin },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
-    // ⚠️ RETURNEAZĂ formatul corect!
     res.status(200).json({
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        emailVerified: user.emailVerified
       }
     });
-
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      message: 'Eroare la autentificare. Încearcă din nou.' 
-    });
+    res.status(500).json({ message: 'Eroare la autentificare' });
   }
 };
 
-// La sfârșitul fișierului, adaugă:
-
-// @desc    Update user profile
-// @route   PUT /api/auth/profile
-// @access  Private (requires authMiddleware)
-exports.updateProfile = async (req, res) => {
-  try {
-    const { name, email, currentPassword, newPassword } = req.body;
-    
-    // req.user vine din authMiddleware (are id-ul user-ului)
-    const user = await User.findById(req.user.id);
-    
-    if (!user) {
-      return res.status(404).json({ 
-        message: 'Utilizator negăsit' 
-      });
-    }
-
-    // Update name și email (dacă sunt furnizate)
-    if (name && name !== user.name) {
-      user.name = name;
-    }
-    
-    if (email && email !== user.email) {
-      // Verifică dacă email-ul nu e deja folosit
-      const existingUser = await User.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
-        return res.status(400).json({ 
-          message: 'Acest email este deja folosit' 
-        });
-      }
-      user.email = email;
-    }
-
-    // Dacă vrea să schimbe parola
-    if (newPassword) {
-      if (!currentPassword) {
-        return res.status(400).json({ 
-          message: 'Trebuie să introduci parola curentă pentru a o schimba' 
-        });
-      }
-
-      // Verifică parola curentă
-      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-      if (!isPasswordValid) {
-        return res.status(401).json({ 
-          message: 'Parola curentă este incorectă' 
-        });
-      }
-
-      // Validare parolă nouă
-      if (newPassword.length < 8) {
-        return res.status(400).json({ 
-          message: 'Parola nouă trebuie să conțină cel puțin 8 caractere' 
-        });
-      }
-
-      // Hash new password
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(newPassword, salt);
-    }
-
-    // Salvează modificările
-    await user.save();
-
-    // Returnează user-ul actualizat
-    res.status(200).json({
-      message: 'Profil actualizat cu succes',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin,
-        avatar: user.avatar
-      }
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ 
-      message: 'Eroare la actualizarea profilului. Încearcă din nou.' 
-    });
-  }
-};
-
+// @desc    Logout user
 exports.logout = async (req, res) => {
   res.status(200).json({ message: 'Deconectat cu succes' });
 };
 
 // @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'Utilizator negăsit' });
     }
-    res.status(200).json({
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        is_admin: user.is_admin,
-        avatar: user.avatar
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error getting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Update user profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Numele și email-ul sunt obligatorii' });
+    }
+
+    if (email !== req.user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email-ul este deja folosit' });
       }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, email },
+      { returnDocument: 'after', runValidators: true }
+    ).select('-password');
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Eroare la actualizarea profilului' });
+  }
+};
+
+// @desc    Verify email with token
+// @route   POST /api/auth/verify-email
+// @access  Public
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: 'Token lipsă' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Update user
+    const user = await User.findByIdAndUpdate(
+      decoded.userId,
+      { emailVerified: true },
+      { returnDocument: 'after' }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizator negăsit' });
+    }
+
+    res.status(200).json({ 
+      message: 'Email verificat cu succes!',
+      user 
     });
   } catch (error) {
-    res.status(500).json({ message: 'Eroare' });
+    console.error('Error verifying email:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ message: 'Token invalid' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(400).json({ message: 'Token expirat. Retrimite email-ul de verificare.' });
+    }
+    res.status(500).json({ message: 'Eroare la verificarea email-ului' });
+  }
+};
+
+// @desc    Resend verification email
+// @route   POST /api/auth/resend-verification
+// @access  Private
+exports.resendVerification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilizator negăsit' });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'Email-ul este deja verificat' });
+    }
+
+    await sendVerificationEmail(user);
+
+    res.status(200).json({ 
+      message: 'Email de verificare retrimis! Verifică inbox-ul (și spam folder).'
+    });
+  } catch (error) {
+    console.error('Error resending verification:', error);
+    res.status(500).json({ message: 'Eroare la retrimierea email-ului' });
+  }
+};
+
+// @desc    Change password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Completează toate câmpurile' });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Parola curentă este incorectă' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Parola nouă trebuie să conțină cel puțin 8 caractere' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({ message: 'Parola a fost schimbată cu succes!' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Eroare la schimbarea parolei' });
+  }
+};
+
+// @desc    Delete user account
+exports.deleteAccount = async (req, res) => {
+  try {
+    await Plan.deleteMany({ user_id: req.user._id });
+    await Preferences.deleteMany({ user_id: req.user._id });
+    await User.findByIdAndDelete(req.user._id);
+
+    res.status(200).json({ message: 'Cont șters cu succes' });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ message: 'Eroare la ștergerea contului' });
   }
 };

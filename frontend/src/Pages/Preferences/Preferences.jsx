@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DollarSign, TrendingUp, Target, Calendar, ArrowRight, Loader } from 'lucide-react';
+import { DollarSign, TrendingUp, Target, Calendar, ArrowRight, Loader, Shield, Scale, Zap, Home, GraduationCap, AlertCircle, TrendingUpIcon, Info } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -83,7 +83,7 @@ const Preferences = () => {
         }
       );
 
-      toast.success('Preferințe salvate cu succes!');
+      toast.success('Preferințe salvate cu succes');
       navigate('/dashboard');
     } catch (error) {
       console.error('Save preferences error:', error);
@@ -97,30 +97,39 @@ const Preferences = () => {
     { 
       value: 'low', 
       label: 'Conservator', 
-      emoji: '🛡️',
-      description: 'Risc scăzut, randament stabil (4-6% anual)'
+      icon: Shield,
+      description: 'Risc scăzut, randament stabil (până la 9% anual)',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-500'
     },
     { 
       value: 'medium', 
       label: 'Echilibrat', 
-      emoji: '⚖️',
-      description: 'Echilibru între risc și randament (7-10% anual)'
+      icon: Scale,
+      description: 'Echilibru între risc și randament (8-11% anual)',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-500'
     },
     { 
       value: 'high', 
       label: 'Agresiv', 
-      emoji: '🚀',
-      description: 'Risc ridicat, potențial mare (12-20% anual)'
+      icon: Zap,
+      description: 'Risc ridicat, potențial mare (peste 10% anual)',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-500'
     }
   ];
 
   const goals = [
-    { value: 'retirement', label: 'Pensionare', emoji: '🏖️' },
-    { value: 'education', label: 'Educație', emoji: '🎓' },
-    { value: 'home', label: 'Casă', emoji: '🏠' },
-    { value: 'emergency', label: 'Fond Urgență', emoji: '🚨' },
-    { value: 'wealth', label: 'Creștere Avere', emoji: '💰' },
-    { value: 'other', label: 'Altele', emoji: '🎯' }
+    { value: 'retirement', label: 'Pensionare', icon: Home },
+    { value: 'education', label: 'Educație', icon: GraduationCap },
+    { value: 'home', label: 'Casă', icon: Home },
+    { value: 'emergency', label: 'Fond Urgență', icon: AlertCircle },
+    { value: 'wealth', label: 'Creștere Avere', icon: TrendingUpIcon },
+    { value: 'other', label: 'Altele', icon: Target }
   ];
 
   if (checkingExisting) {
@@ -137,7 +146,7 @@ const Preferences = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🎯 Setează-ți Profilul Investițional
+            Setează-ți Profilul Investițional
           </h1>
           <p className="text-lg text-gray-600">
             Răspunde la câteva întrebări pentru a primi sugestii personalizate
@@ -181,22 +190,27 @@ const Preferences = () => {
                 Ce nivel de risc accepți?
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {riskLevels.map((risk) => (
-                  <button
-                    key={risk.value}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, risk_level: risk.value }))}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.risk_level === risk.value
-                        ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                        : 'border-gray-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-4xl mb-2">{risk.emoji}</div>
-                    <div className="font-bold text-gray-900 mb-1">{risk.label}</div>
-                    <div className="text-xs text-gray-600">{risk.description}</div>
-                  </button>
-                ))}
+                {riskLevels.map((risk) => {
+                  const IconComponent = risk.icon;
+                  return (
+                    <button
+                      key={risk.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, risk_level: risk.value }))}
+                      className={`p-5 rounded-xl border-2 transition-all ${
+                        formData.risk_level === risk.value
+                          ? `${risk.borderColor} ${risk.bgColor} shadow-md`
+                          : 'border-gray-200 hover:border-indigo-300 bg-white'
+                      }`}
+                    >
+                      <div className={`flex justify-center mb-3 ${formData.risk_level === risk.value ? risk.color : 'text-gray-400'}`}>
+                        <IconComponent className="w-10 h-10" />
+                      </div>
+                      <div className="font-bold text-gray-900 mb-2 text-base">{risk.label}</div>
+                      <div className="text-xs text-gray-600 leading-relaxed">{risk.description}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -207,21 +221,28 @@ const Preferences = () => {
                 Care e obiectivul tău principal?
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {goals.map((goal) => (
-                  <button
-                    key={goal.value}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, main_goal: goal.value }))}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      formData.main_goal === goal.value
-                        ? 'border-indigo-500 bg-indigo-50'
-                        : 'border-gray-200 hover:border-indigo-300'
-                    }`}
-                  >
-                    <div className="text-3xl mb-1">{goal.emoji}</div>
-                    <div className="text-sm font-medium text-gray-900">{goal.label}</div>
-                  </button>
-                ))}
+                {goals.map((goal) => {
+                  const IconComponent = goal.icon;
+                  return (
+                    <button
+                      key={goal.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, main_goal: goal.value }))}
+                      className={`p-4 rounded-xl border-2 transition-all ${
+                        formData.main_goal === goal.value
+                          ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                          : 'border-gray-200 hover:border-indigo-300 bg-white'
+                      }`}
+                    >
+                      <div className={`flex justify-center mb-2 ${
+                        formData.main_goal === goal.value ? 'text-indigo-600' : 'text-gray-400'
+                      }`}>
+                        <IconComponent className="w-8 h-8" />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{goal.label}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -229,7 +250,7 @@ const Preferences = () => {
             <div>
               <label className="flex items-center text-lg font-semibold text-gray-800 mb-3">
                 <Calendar className="w-6 h-6 mr-2 text-indigo-600" />
-                În cât timp vrei să atingi obiectivul?
+                Cât timp ești dispus să investești?
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -292,8 +313,9 @@ const Preferences = () => {
         </div>
 
         {/* Info Footer */}
-        <div className="text-center mt-6 text-sm text-gray-600">
-          💡 Poți schimba aceste preferințe oricând din Profil
+        <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-600">
+          <Info className="w-4 h-4" />
+          <span>Poți schimba aceste preferințe oricând din Dashboard</span>
         </div>
       </div>
     </div>

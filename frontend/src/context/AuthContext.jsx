@@ -13,24 +13,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user'); // ← ADĂUGAT
       
       if (token) {
         try {
           // Configurează axios să includă token-ul în toate request-urile
           axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           
-          // Opțional: Verifică token-ul cu backend-ul (dacă ai endpoint pentru asta)
-          // const res = await axios.get('http://localhost:8000/api/auth/me');
-          // setUser(res.data.user);
+          // Dacă avem user în localStorage, folosește-l direct
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              setUser(parsedUser);
+              setIsAuthenticated(true);
+            } catch (parseError) {
+              console.error('Error parsing stored user:', parseError);
+            }
+          }
           
-          // Sau decodează token-ul local (simplu, fără verificare)
-          const userData = decodeToken(token);
-          setUser(userData);
+          // Fetch user data from backend pentru refresh (opțional)
+          const res = await axios.get('http://localhost:8000/api/auth/me', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          setUser(res.data);
+          localStorage.setItem('user', JSON.stringify(res.data)); // ← SALVEAZĂ
           setIsAuthenticated(true);
         } catch (error) {
           console.error('Token invalid sau expirat:', error);
           localStorage.removeItem('token');
+          localStorage.removeItem('user'); // ← ADĂUGAT
           delete axios.defaults.headers.common['Authorization'];
+          setUser(null);
+          setIsAuthenticated(false);
         }
       }
       
@@ -39,24 +55,6 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
   }, []);
-
-  // Funcție simplă pentru decodare JWT (fără verificare - doar pentru display)
-  const decodeToken = (token) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
-  };
 
   // Login
   const login = async (email, password) => {
@@ -70,6 +68,9 @@ export const AuthProvider = ({ children }) => {
 
       // Salvează token-ul
       localStorage.setItem('token', token);
+      
+      // IMPORTANT - Salvează user object
+      localStorage.setItem('user', JSON.stringify(userData)); // ← ADĂUGAT
       
       // Configurează axios
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -101,6 +102,9 @@ export const AuthProvider = ({ children }) => {
       // Salvează token-ul
       localStorage.setItem('token', token);
       
+      // IMPORTANT - Salvează user object
+      localStorage.setItem('user', JSON.stringify(userData)); // ← ADĂUGAT
+      
       // Configurează axios
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -122,6 +126,9 @@ export const AuthProvider = ({ children }) => {
     // Șterge token-ul
     localStorage.removeItem('token');
     
+    // Șterge user object
+    localStorage.removeItem('user'); // ← ADĂUGAT
+    
     // Șterge header-ul Authorization
     delete axios.defaults.headers.common['Authorization'];
 
@@ -132,9 +139,11 @@ export const AuthProvider = ({ children }) => {
     toast.success('Ai fost deconectat cu succes');
   };
 
-  // Update user profile (opțional - pentru viitor)
+  // Update user profile (called from Profile.jsx after successful update)
   const updateUser = (updatedData) => {
-    setUser({ ...user, ...updatedData });
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser)); // ← ADĂUGAT
   };
 
   const value = {

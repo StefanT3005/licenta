@@ -1,4 +1,4 @@
-import { ChevronDown, User, LogOut, Mail, LayoutDashboard } from "lucide-react";
+import { ChevronDown, User, LogOut, Mail, LayoutDashboard, Newspaper, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const ProfileDropdown = ({
@@ -11,10 +11,11 @@ const ProfileDropdown = ({
   showDashboard = true, // Optional prop to show/hide Dashboard link
 }) => {
   const navigate = useNavigate();
-
   const getInitials = (n) => {
     return n ? n.charAt(0).toUpperCase() : "U";
   };
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   return (
     <div className="relative">
@@ -101,6 +102,36 @@ const ProfileDropdown = ({
               </div>
               Vezi Profilul
             </button>
+
+            {/* News Link */}
+            <button
+              onClick={() => {
+                navigate("/news");
+                onToggle(); // Close dropdown
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
+            >
+              <div className="p-1.5 bg-gray-100 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors text-gray-500">
+                <Newspaper size={16} />
+              </div>
+              Știri
+            </button>
+            
+            {/* Admin Panel Link (Only for Admins) */}
+            {user?.is_admin && (
+            <button
+              onClick={() => {
+                navigate("/admin");
+                onToggle(); // Close dropdown
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
+            >
+              <div className="p-1.5 bg-gray-100 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors text-gray-500">
+                <Shield size={16} />
+              </div>
+              Admin Panel
+            </button>
+            )}
 
             {/* Logout Button */}
             <button

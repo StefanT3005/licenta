@@ -6,38 +6,82 @@
 
 /**
  * Strategii de alocare bazate pe nivel de risc
+ * Icon names (strings) - mapped în frontend la lucide-react components
  */
 const riskStrategies = {
   low: {
     name: 'Conservator',
     description: 'Risc scăzut, randament stabil',
-    expectedReturn: { min: 4, max: 6 },
+    expectedReturn: { min: 6, max: 9 },
     allocations: [
-      { asset: 'Obligațiuni Guvernamentale', percentage: 60, emoji: '📉' },
-      { asset: 'ETF S&P 500', percentage: 25, emoji: '📊' },
-      { asset: 'Cash / Savings', percentage: 15, emoji: '💵' }
+      { 
+        asset: 'Titluri de stat Tezaur/Fidelis', 
+        percentage: 35, 
+        iconName: 'Shield',
+        color: 'text-blue-600'
+      },
+      { 
+        asset: 'Acțiuni blue-chip (Microsoft, Apple, J&J, Coca-Cola)', 
+        percentage: 25, 
+        iconName: 'PieChart',
+        color: 'text-blue-600'
+      },
+      { 
+        asset: 'ETFs (VWCE, VUAA, VHYD, AGGG)', 
+        percentage: 40, 
+        iconName: 'Wallet',
+        color: 'text-blue-600'
+      }
     ]
   },
   medium: {
     name: 'Echilibrat',
     description: 'Echilibru între risc și randament',
-    expectedReturn: { min: 7, max: 10 },
+    expectedReturn: { min: 8, max: 11 },
     allocations: [
-      { asset: 'ETF S&P 500', percentage: 50, emoji: '📊' },
-      { asset: 'Acțiuni Blue-chip', percentage: 30, emoji: '📈' },
-      { asset: 'Obligațiuni', percentage: 15, emoji: '📉' },
-      { asset: 'Crypto (BTC/ETH)', percentage: 5, emoji: '💎' }
+      { 
+        asset: 'ETFs (VWCE, IWDA, VUAA, VHYD)', 
+        percentage: 40, 
+        iconName: 'PieChart',
+        color: 'text-purple-600'
+      },
+      { 
+        asset: 'Titluri de stat Tezaur/Fidelis', 
+        percentage: 30, 
+        iconName: 'Building2',
+        color: 'text-purple-600'
+      },
+      { 
+        asset: 'Acțiuni blue-chip (Microsoft, Apple, Google, Amazon)', 
+        percentage: 30, 
+        iconName: 'Shield',
+        color: 'text-purple-600'
+      }
     ]
   },
   high: {
     name: 'Agresiv',
     description: 'Risc ridicat, potențial mare',
-    expectedReturn: { min: 12, max: 20 },
+    expectedReturn: { min: 10, max: 20 },
     allocations: [
-      { asset: 'Growth Stocks', percentage: 40, emoji: '🚀' },
-      { asset: 'Crypto (BTC/ETH/ALT)', percentage: 30, emoji: '💎' },
-      { asset: 'Thematic ETFs', percentage: 20, emoji: '🎯' },
-      { asset: 'Acțiuni Blue-chip', percentage: 10, emoji: '📈' }
+      { 
+        asset: 'ETFs tematice (EQQQ, WTEC, IITU, XEON)', 
+        percentage: 35, 
+        iconName: 'Rocket',
+        color: 'text-orange-600'
+      },
+      { 
+        asset: 'Acțiuni growth (Nvidia, Tesla, Meta, Amazon)', 
+        percentage: 30, 
+        iconName: 'Bitcoin',
+        color: 'text-orange-600'
+      },
+      { 
+        asset: 'Crypto (BTC, ETH, SOL, BNB)', 
+        percentage: 35, 
+        iconName: 'Target',
+        color: 'text-orange-600'
+      }
     ]
   }
 };
@@ -48,33 +92,27 @@ const riskStrategies = {
 const goalAdjustments = {
   retirement: {
     name: 'Pensionare',
-    focus: 'Creștere pe termen lung',
-    tip: 'Mizează pe ETF-uri cu dividende și acțiuni stabile'
+    iconName: 'TrendingUp'
   },
   education: {
     name: 'Educație',
-    focus: 'Siguranță cu creștere moderată',
-    tip: 'Balansează între obligațiuni și ETF-uri pentru stabilitate'
+    iconName: 'GraduationCap'
   },
   home: {
     name: 'Casă',
-    focus: 'Acumulare rapidă cu risc moderat',
-    tip: 'Combină ETF-uri și savings pentru lichiditate'
+    iconName: 'Home'
   },
   emergency: {
     name: 'Fond Urgență',
-    focus: 'Siguranță maximă și lichiditate',
-    tip: 'Prioritizează cash și obligațiuni pe termen scurt'
+    iconName: 'Shield'
   },
   wealth: {
     name: 'Creștere Avere',
-    focus: 'Maximizare randament',
-    tip: 'Poți lua mai mult risc pentru potențial mai mare'
+    iconName: 'TrendingUp'
   },
   other: {
     name: 'Altele',
-    focus: 'Strategie personalizată',
-    tip: 'Ajustează alocarea în funcție de nevoile tale specifice'
+    iconName: 'Target'
   }
 };
 
@@ -85,7 +123,7 @@ function adjustForHorizon(allocations, horizonMonths) {
   // Orizont foarte scurt (<12 luni) - reduce riscul
   if (horizonMonths < 12) {
     return allocations.map(allocation => {
-      if (allocation.asset.includes('Crypto') || allocation.asset.includes('Growth')) {
+      if (allocation.asset.includes('Crypto') || allocation.asset.includes('growth')) {
         return { ...allocation, percentage: Math.floor(allocation.percentage * 0.5) };
       }
       if (allocation.asset.includes('Obligațiuni') || allocation.asset.includes('Cash')) {
@@ -98,7 +136,7 @@ function adjustForHorizon(allocations, horizonMonths) {
   // Orizont foarte lung (>60 luni) - poate lua mai mult risc
   if (horizonMonths > 60) {
     return allocations.map(allocation => {
-      if (allocation.asset.includes('Crypto') || allocation.asset.includes('Growth')) {
+      if (allocation.asset.includes('Crypto') || allocation.asset.includes('growth')) {
         return { ...allocation, percentage: Math.floor(allocation.percentage * 1.2) };
       }
       if (allocation.asset.includes('Cash')) {
@@ -120,15 +158,20 @@ function normalizePercentages(allocations) {
   if (total === 100) return allocations;
   
   // Ajustează proporțional
-  return allocations.map((allocation, index) => {
+  const normalized = allocations.map((allocation) => {
     const adjusted = Math.floor((allocation.percentage / total) * 100);
-    // Ultimul item primește diferența pentru a ajunge exact la 100
-    if (index === allocations.length - 1) {
-      const currentTotal = allocations.slice(0, -1).reduce((sum, a) => sum + a.percentage, 0);
-      return { ...allocation, percentage: 100 - currentTotal };
-    }
     return { ...allocation, percentage: adjusted };
   });
+  
+  // Calculează diferența și adaugă la ultimul item pentru a ajunge exact la 100
+  const currentTotal = normalized.reduce((sum, a) => sum + a.percentage, 0);
+  const difference = 100 - currentTotal;
+  
+  if (difference !== 0 && normalized.length > 0) {
+    normalized[normalized.length - 1].percentage += difference;
+  }
+  
+  return normalized;
 }
 
 /**
@@ -172,7 +215,7 @@ function generateSuggestions(preferences) {
   const finalAmount = budget_monthly * (Math.pow(1 + monthlyRate, horizon_months) - 1) / monthlyRate;
   
   const estimatedGain = finalAmount - totalInvested;
-  const estimatedGainPercentage = (estimatedGain / totalInvested) * 100;
+  const estimatedGainPercentage = totalInvested > 0 ? (estimatedGain / totalInvested) * 100 : 0;
   
   return {
     strategy: {
@@ -184,7 +227,8 @@ function generateSuggestions(preferences) {
     goal: {
       name: goalInfo.name,
       focus: goalInfo.focus,
-      tip: goalInfo.tip
+      tip: goalInfo.tip,
+      iconName: goalInfo.iconName
     },
     allocations: allocationsWithAmounts,
     financial: {
@@ -199,7 +243,7 @@ function generateSuggestions(preferences) {
       `Investește ${budget_monthly}$ lunar conform alocării`,
       `Orizont de timp: ${horizon_months} luni (${Math.round(horizon_months / 12 * 10) / 10} ani)`,
       `Randament estimat: ${strategy.expectedReturn.min}-${strategy.expectedReturn.max}% anual`,
-      goalInfo.tip
+      'Randamentul anual se reflectă complet pe orizonturi de 3+ ani'
     ]
   };
 }
@@ -216,7 +260,9 @@ function quickSuggestion(budget, riskLevel = 'medium') {
     allocations: strategy.allocations.map(a => ({
       asset: a.asset,
       percentage: a.percentage,
-      amount: Math.round((budget * a.percentage) / 100 * 100) / 100
+      amount: Math.round((budget * a.percentage) / 100 * 100) / 100,
+      iconName: a.iconName,
+      color: a.color
     })),
     expectedReturn: `${strategy.expectedReturn.min}-${strategy.expectedReturn.max}%`
   };

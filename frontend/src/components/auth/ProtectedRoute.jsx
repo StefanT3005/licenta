@@ -19,12 +19,12 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Not authenticated - redirect to login
+  // Not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Authenticated - show protected content wrapped in DashboardLayout
+  // Authenticated, show protected content wrapped in DashboardLayout
   return (
     <DashboardLayout>
       {children ? children : <Outlet />}

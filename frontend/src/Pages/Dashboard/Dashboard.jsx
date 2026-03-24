@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Target, DollarSign, Calendar, ArrowRight, Sparkles, PieChart } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, ArrowRight, Sparkles, PieChart } from 'lucide-react';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { getIcon } from '../../utils/iconMap';
+
+
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -55,9 +57,9 @@ const Dashboard = () => {
 
   const getRiskBadge = (risk) => {
     const badges = {
-      low: { color: 'bg-green-100 text-green-700 border-green-300', text: 'Conservator' },
-      medium: { color: 'bg-yellow-100 text-yellow-700 border-yellow-300', text: 'Echilibrat' },
-      high: { color: 'bg-red-100 text-red-700 border-red-300', text: 'Agresiv' }
+      low: { color: 'bg-blue-100 text-blue-700 border-blue-300', text: 'Conservator' },
+      medium: { color: 'bg-purple-100 text-purple-700 border-purple-300', text: 'Echilibrat' },
+      high: { color: 'bg-orange-100 text-orange-700 border-orange-300', text: 'Agresiv' }
     };
     return badges[risk] || badges.medium;
   };
@@ -77,7 +79,7 @@ const Dashboard = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
             <Sparkles className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Bun venit! 👋</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Bun venit!</h2>
             <p className="text-gray-600 mb-6">Configurează-ți profilul investițional pentru a primi sugestii personalizate</p>
             <Link
               to="/preferences"
@@ -99,7 +101,7 @@ const Dashboard = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Dashboard 📊
+          Dashboard
         </h1>
         <p className="text-gray-600">Privire de ansamblu asupra investițiilor tale</p>
       </div>
@@ -145,7 +147,6 @@ const Dashboard = () => {
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-blue-600" />
               <h2 className="text-xl font-bold text-gray-900">Sugestii Personalizate</h2>
             </div>
             <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${riskBadge.color}`}>
@@ -168,29 +169,37 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Allocations */}
+          {/* Allocations - UPDATED: Icons instead of emojis */}
           <div className="space-y-3 mb-6">
             <p className="text-sm font-semibold text-gray-900 mb-3">Alocarea Bugetului Lunar (${preferences.budget_monthly})</p>
-            {suggestions.allocations.map((allocation, index) => (
-              <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{allocation.emoji}</span>
-                    <div>
-                      <p className="text-gray-900 font-semibold">{allocation.asset}</p>
-                      <p className="text-sm text-gray-600">{allocation.percentage}% din buget</p>
+            {suggestions.allocations.map((allocation, index) => {
+              // Convert iconName string to lucide-react component
+              const IconComponent = getIcon(allocation.iconName);
+              
+              return (
+                <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      {/* Professional icon instead of emoji */}
+                      <div className="p-2 bg-white rounded-lg border border-gray-200">
+                        <IconComponent className={`w-6 h-6 ${allocation.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-gray-900 font-semibold">{allocation.asset}</p>
+                        <p className="text-sm text-gray-600">{allocation.percentage}% din buget</p>
+                      </div>
                     </div>
+                    <p className="text-lg font-bold text-blue-600">${allocation.amount.toLocaleString()}/lună</p>
                   </div>
-                  <p className="text-lg font-bold text-blue-600">${allocation.amount.toLocaleString()}/lună</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all"
+                      style={{ width: `${allocation.percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all"
-                    style={{ width: `${allocation.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Financial Projection */}
@@ -228,7 +237,7 @@ const Dashboard = () => {
 
           {/* Recommendations */}
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p className="text-sm font-semibold text-gray-900 mb-2">💡 Recomandări:</p>
+            <p className="text-sm font-semibold text-gray-900 mb-2">Recomandări:</p>
             <ul className="space-y-2">
               {suggestions.recommendations.map((rec, index) => (
                 <li key={index} className="text-sm text-gray-700 flex items-start gap-2">

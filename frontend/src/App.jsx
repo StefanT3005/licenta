@@ -16,6 +16,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Preferences from './Pages/Preferences/Preferences';
 import News from './Pages/News/News';
 import Admin from './Pages/Admin/Admin';
+import VerifyEmail from './Pages/VerifyEmail/VerifyEmail';
+
 
 const App = () => {
   return (
@@ -26,6 +28,7 @@ const App = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} /> 
 
           {/* ✨ Preferences - Onboarding standalone (FĂRĂ sidebar) */}
           <Route 

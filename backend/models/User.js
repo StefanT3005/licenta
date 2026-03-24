@@ -3,22 +3,22 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    trim: true
+    required: true
   },
   email: {
     type: String,
     required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
+    unique: true
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    required: true
   },
   is_admin: {
+    type: Boolean,
+    default: false
+  },
+  emailVerified: {
     type: Boolean,
     default: false
   }

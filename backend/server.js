@@ -29,6 +29,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/plans', require('./routes/planRoutes'));
 app.use('/api/preferences', require('./routes/preferencesRoutes'));
 app.use('/api/news', require('./routes/newsRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Root route
 app.get('/', (req, res) => {
@@ -63,8 +64,8 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 API available at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`API available at http://localhost:${PORT}`);
 });
 
 module.exports = app;

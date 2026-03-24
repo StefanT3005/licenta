@@ -1,450 +1,397 @@
-import { useState, useContext, useEffect } from 'react';
-import { AuthContext } from '../../context/AuthContext';
-import { User, Mail, Lock, Save, X, CheckCircle2, Shield, Bell, Trash2, TrendingUp, Wallet, Target } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from 'react';
+import { User, Mail, Shield, Lock, Trash2, Edit2, Save, X, DollarSign, Target, AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const Profile = () => {
-  const { user, updateUser } = useContext(AuthContext);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { user, updateUser, logout } = useAuth();
+  
+  const [stats, setStats] = useState({
+    totalPortfolio: 0,
+    activePlans: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    email: ''
   });
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || '',
-        email: user.email || '',
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        email: user.email || ''
       });
     }
+    fetchStats();
   }, [user]);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-
-    // Validare
-    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      toast.error('Parolele nu coincid');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.newPassword && formData.newPassword.length < 8) {
-      toast.error('Parola trebuie să conțină cel puțin 8 caractere');
-      setLoading(false);
-      return;
-    }
-
+  const fetchStats = async () => {
     try {
-      // Request la backend pentru update
-      const res = await axios.put('http://localhost:8000/api/auth/profile', {
-        name: formData.name,
-        email: formData.email,
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
+      const token = localStorage.getItem('token');
+      
+      const plansRes = await axios.get('http://localhost:8000/api/plans', {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Update context cu datele noi
-      updateUser(res.data.user);
+      const plans = plansRes.data;
 
-      toast.success('Profil actualizat cu succes! 🎉');
-      setIsEditing(false);
-      
-      // Reset password fields
-      setFormData({
-        name: res.data.user.name,
-        email: res.data.user.email,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+      const totalPortfolio = plans.reduce((sum, plan) => {
+        return sum + (plan.current_amount || plan.contributed_amount || 0);
+      }, 0);
+
+      setStats({
+        totalPortfolio,
+        activePlans: plans.length
       });
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Eroare la actualizarea profilului';
-      toast.error(errorMsg);
+      console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    setFormData({
-      name: user.name || '',
-      email: user.email || '',
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-    setIsEditing(false);
+  const handleUpdateProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        'http://localhost:8000/api/auth/update-profile',
+        formData,
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+
+      updateUser(response.data);
+      setEditMode(false);
+      toast.success('Profil actualizat cu succes!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error(error.response?.data?.message || 'Eroare la actualizarea profilului');
+    }
   };
 
-  const handleDeleteAccount = () => {
-    toast.error('Funcție în dezvoltare');
-    setShowDeleteModal(false);
+  const handleCancelEdit = () => {
+    setFormData({
+      name: user.name,
+      email: user.email
+    });
+    setEditMode(false);
   };
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:8000/api/auth/resend-verification',
+        {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      toast.success('Email de verificare retrimis! Verifică inbox-ul (și spam folder).');
+    } catch (error) {
+      console.error('Error resending verification:', error);
+      toast.error(error.response?.data?.message || 'Eroare la retrimierea email-ului');
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
+  const handleChangePassword = () => {
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Sigur vrei să ștergi contul permanent? Această acțiune nu poate fi anulată!')) return;
+    
+    const confirmation = window.prompt('Scrie "ȘTERGE CONTUL" pentru a confirma:');
+    if (confirmation !== 'ȘTERGE CONTUL') {
+      toast.error('Confirmare eșuată');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete('http://localhost:8000/api/auth/delete-account', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success('Cont șters cu succes');
+      logout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast.error('Eroare la ștergerea contului');
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Profilul Meu</h1>
-          <p className="text-gray-600 mt-1">Gestionează informațiile contului tău</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sidebar - Stats & Quick Info */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Investment Stats */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-                Statistici Investiții
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                      <Wallet className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Portofoliu Total</p>
-                      <p className="text-2xl font-bold text-gray-900">$24,593</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-green-600 font-semibold text-sm">+12.5%</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-1">Active</p>
-                    <p className="text-2xl font-bold text-gray-900">12</p>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-600 mb-1">Planuri</p>
-                    <p className="text-2xl font-bold text-gray-900">3</p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                  <div className="flex items-center gap-3">
-                    <Target className="w-10 h-10 text-green-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Profit Total</p>
-                      <p className="text-xl font-bold text-green-600">+$2,847</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Acțiuni Rapide</h3>
-              <div className="space-y-2">
-                <button className="w-full p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-gray-400" />
-                  <span className="font-medium">Notificări</span>
-                </button>
-                <button className="w-full p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-gray-400" />
-                  <span className="font-medium">Securitate</span>
-                </button>
-                <button className="w-full p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-gray-400" />
-                  <span className="font-medium">Setări Investiții</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content - Profile Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Informații Personale</h3>
-                {!isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30 hover:scale-105"
-                  >
-                    Editează Profil
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCancel}
-                      disabled={loading}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
-                    >
-                      <X className="w-4 h-4" />
-                      Anulează
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={loading}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-blue-500/30"
-                    >
-                      {loading ? (
-                        <>
-                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          Salvare...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Salvează
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-5">
-                {/* Name */}
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Nume Complet
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:bg-gray-50 disabled:text-gray-600 font-medium"
-                    />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Adresă Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={!isEditing}
-                      className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:bg-gray-50 disabled:text-gray-600 font-medium"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {!isEditing && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                  <p className="text-sm text-blue-800">
-                    💡 <strong>Sfat:</strong> Pentru a modifica informațiile, apasă pe "Editează Profil".
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Change Password - Only when editing */}
-            {isEditing && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-blue-600" />
-                  Schimbă Parola
-                </h3>
-                
-                <div className="space-y-5">
-                  {/* Current Password */}
-                  <div>
-                    <label htmlFor="currentPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Parola Curentă
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="password"
-                        id="currentPassword"
-                        name="currentPassword"
-                        value={formData.currentPassword}
-                        onChange={handleChange}
-                        placeholder="Lasă gol dacă nu schimbi parola"
-                        className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* New Password */}
-                  <div>
-                    <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Parola Nouă
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="password"
-                        id="newPassword"
-                        name="newPassword"
-                        value={formData.newPassword}
-                        onChange={handleChange}
-                        placeholder="Minim 8 caractere"
-                        className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Confirmă Parola Nouă
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirmă noua parolă"
-                        className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                      />
-                      {formData.confirmPassword && formData.newPassword === formData.confirmPassword && (
-                        <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Security Settings */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Securitate & Preferințe</h3>
-              
-              <div className="space-y-4">
-                {/* Notifications */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Notificări Email</p>
-                      <p className="text-sm text-gray-600">Primește actualizări despre portofoliul tău</p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
-                {/* 2FA */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Autentificare în Doi Pași</p>
-                      <p className="text-sm text-gray-600">Protecție suplimentară pentru contul tău</p>
-                    </div>
-                  </div>
-                  <button className="px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200">
-                    Activează
-                  </button>
-                </div>
-              </div>
-
-              {/* Danger Zone */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h4 className="text-sm font-bold text-red-600 mb-3 flex items-center gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  Zona de Pericol
-                </h4>
-                <p className="text-sm text-gray-600 mb-4">
-                  Odată ce ștergi contul, nu mai există cale de întoarcere. Te rog fii sigur.
-                </p>
-                <button
-                  onClick={() => setShowDeleteModal(true)}
-                  className="px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 border border-red-300 rounded-lg transition-colors"
-                >
-                  Șterge Contul Permanent
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profilul Meu</h1>
+        <p className="text-gray-600">Gestionează informațiile contului tău</p>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scale-in">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 text-center mb-2">Ștergere Cont</h3>
-            <p className="text-gray-600 text-center mb-6">
-              Ești sigur că vrei să ștergi contul? Această acțiune este permanentă și nu poate fi anulată.
-            </p>
-            <div className="flex gap-3">
+      {/* Email Verification Banner */}
+      {!user?.emailVerified && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+          <div className="flex items-start">
+            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-yellow-800 mb-1">
+                Email-ul tău nu este verificat
+              </p>
+              <p className="text-sm text-yellow-700 mb-3">
+                Pentru siguranță, te rugăm să-ți verifici adresa de email. Am trimis un email de verificare la <strong>{user?.email}</strong>
+              </p>
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors"
+                onClick={handleResendVerification}
+                disabled={resendingEmail}
+                className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition disabled:opacity-50"
               >
-                Anulează
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
-              >
-                Șterge Contul
+                {resendingEmail ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Se retrimite...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    Retrimite Email
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <style>{`
-        @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
+      {/* Stats Cards - Only 2 */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Portofoliu Total */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all">
+          <div className="p-3 bg-blue-50 rounded-xl mb-4 w-fit">
+            <DollarSign className="w-6 h-6 text-blue-600" />
+          </div>
+          <p className="text-sm text-gray-600 mb-1">Portofoliu Total</p>
+          <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalPortfolio)}</p>
+        </div>
 
-        .animate-scale-in {
-          animation: scale-in 0.2s ease-out;
-        }
-      `}</style>
+        {/* Planuri Active */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all">
+          <div className="p-3 bg-orange-50 rounded-xl mb-4 w-fit">
+            <Target className="w-6 h-6 text-orange-600" />
+          </div>
+          <p className="text-sm text-gray-600 mb-1">Planuri Active</p>
+          <p className="text-2xl font-bold text-gray-900">{stats.activePlans}</p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Informații Personale */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Informații Personale</h2>
+            {!editMode ? (
+              <button
+                onClick={() => setEditMode(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition"
+              >
+                <Edit2 className="w-4 h-4" />
+                Editează
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition"
+                >
+                  <X className="w-4 h-4" />
+                  Anulează
+                </button>
+                <button
+                  onClick={handleUpdateProfile}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition"
+                >
+                  <Save className="w-4 h-4" />
+                  Salvează
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {/* Nume */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Nume Complet
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={editMode ? formData.name : user?.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  disabled={!editMode}
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    !editMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Adresă Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={editMode ? formData.email : user?.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  disabled={!editMode}
+                  className={`w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    !editMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                  }`}
+                />
+              </div>
+            </div>
+
+            {!editMode && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <p className="text-sm text-gray-700">
+                  <strong>Sfat:</strong> Pentru a modifica informațiile, apasă pe "Editează"
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Securitate & Preferințe */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Securitate & Status</h2>
+
+          <div className="space-y-4">
+            {/* Email Verification Status */}
+            <div className={`p-4 border-2 rounded-xl ${
+              user?.emailVerified 
+                ? 'bg-green-50 border-green-300' 
+                : 'bg-yellow-50 border-yellow-300'
+            }`}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className={`p-2 rounded-lg ${
+                  user?.emailVerified ? 'bg-green-100' : 'bg-yellow-100'
+                }`}>
+                  <Mail className={`w-5 h-5 ${
+                    user?.emailVerified ? 'text-green-600' : 'text-yellow-600'
+                  }`} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-gray-900">Status Email</p>
+                    {user?.emailVerified ? (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        <CheckCircle className="w-3 h-3" />
+                        Verificat
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
+                        <XCircle className="w-3 h-3" />
+                        Neverificat
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {user?.emailVerified 
+                      ? 'Email-ul tău este verificat și contul este activ' 
+                      : 'Te rugăm să-ți verifici email-ul pentru securitate'}
+                  </p>
+                </div>
+              </div>
+              {!user?.emailVerified && (
+                <button 
+                  onClick={handleResendVerification}
+                  disabled={resendingEmail}
+                  className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {resendingEmail ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Se retrimite...
+                    </>
+                  ) : (
+                    'Retrimite Email de Verificare'
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Schimbă Parola */}
+            <div className="flex items-start justify-between p-4 bg-purple-50 border border-purple-200 rounded-xl">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Lock className="w-5 h-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900 mb-1">Schimbă Parola</p>
+                  <p className="text-sm text-gray-600">Actualizează parola contului</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleChangePassword}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition text-sm whitespace-nowrap ml-3"
+              >
+                Schimbă
+              </button>
+            </div>
+
+            {/* Zona de Pericol */}
+            <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl mt-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-red-900 mb-1">Zona de Pericol</p>
+                  <p className="text-sm text-red-700">
+                    Odată ce ștergi contul, nu mai există cale de întoarcere. Te rog fii sigur.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition"
+              >
+                <Trash2 className="w-4 h-4" />
+                Șterge Contul Permanent
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal 
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </div>
   );
 };
