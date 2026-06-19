@@ -44,7 +44,7 @@ coverage/
 Thumbs.db
 Desktop.ini
 
-# API Keys (IMPORTANT - Nu uploada chei!)
+# API Keys
 *API_KEY*
 *api_key*
 config.json
@@ -53,6 +53,6 @@ config.json
 *.sqlite
 *.db
 
-# Uploads (dacă ai file uploads)
+# Uploads
 /uploads/*
 !/uploads/.gitkeep
