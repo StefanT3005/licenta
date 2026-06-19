@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Shield, Lock, Trash2, Edit2, Save, X, DollarSign, Target, AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import ChangePasswordModal from './ChangePasswordModal';
@@ -35,7 +35,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const plansRes = await axios.get('http://localhost:8000/api/plans', {
+      const plansRes = await api.get('http://localhost:8000/api/plans', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -59,7 +59,7 @@ const Profile = () => {
   const handleUpdateProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(
+      const response = await api.put(
         'http://localhost:8000/api/auth/update-profile',
         formData,
         { headers: { Authorization: `Bearer ${token}` }}
@@ -86,7 +86,7 @@ const Profile = () => {
     setResendingEmail(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      await api.post(
         'http://localhost:8000/api/auth/resend-verification',
         {},
         { headers: { Authorization: `Bearer ${token}` }}
@@ -116,7 +116,7 @@ const Profile = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete('http://localhost:8000/api/auth/delete-account', {
+      await api.delete('http://localhost:8000/api/auth/delete-account', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -143,13 +143,11 @@ const Profile = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Profilul Meu</h1>
         <p className="text-gray-600">Gestionează informațiile contului tău</p>
       </div>
 
-      {/* Email Verification Banner */}
       {!user?.emailVerified && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
           <div className="flex items-start">
@@ -183,9 +181,7 @@ const Profile = () => {
         </div>
       )}
 
-      {/* Stats Cards - Only 2 */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Portofoliu Total */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all">
           <div className="p-3 bg-blue-50 rounded-xl mb-4 w-fit">
             <DollarSign className="w-6 h-6 text-blue-600" />
@@ -194,7 +190,6 @@ const Profile = () => {
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalPortfolio)}</p>
         </div>
 
-        {/* Planuri Active */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-lg transition-all">
           <div className="p-3 bg-orange-50 rounded-xl mb-4 w-fit">
             <Target className="w-6 h-6 text-orange-600" />
@@ -205,7 +200,6 @@ const Profile = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Informații Personale */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Informații Personale</h2>
@@ -238,7 +232,6 @@ const Profile = () => {
           </div>
 
           <div className="space-y-4">
-            {/* Nume */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Nume Complet
@@ -257,7 +250,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-2">
                 Adresă Email
@@ -286,12 +278,10 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Securitate & Preferințe */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Securitate & Status</h2>
 
           <div className="space-y-4">
-            {/* Email Verification Status */}
             <div className={`p-4 border-2 rounded-xl ${
               user?.emailVerified 
                 ? 'bg-green-50 border-green-300' 
@@ -345,7 +335,6 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Schimbă Parola */}
             <div className="flex items-start justify-between p-4 bg-purple-50 border border-purple-200 rounded-xl">
               <div className="flex items-start gap-3 flex-1">
                 <div className="p-2 bg-purple-100 rounded-lg">
@@ -364,7 +353,6 @@ const Profile = () => {
               </button>
             </div>
 
-            {/* Zona de Pericol */}
             <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl mt-6">
               <div className="flex items-start gap-3 mb-4">
                 <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
@@ -387,7 +375,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Change Password Modal */}
       <ChangePasswordModal 
         isOpen={isPasswordModalOpen}
         onClose={() => setIsPasswordModalOpen(false)}

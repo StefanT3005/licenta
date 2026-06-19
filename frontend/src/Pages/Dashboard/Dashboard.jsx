@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, Target, DollarSign, ArrowRight, Sparkles, PieChart } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { getIcon } from '../../utils/iconMap';
-
-
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -27,18 +25,15 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Fetch preferences
-      const prefsRes = await axios.get('http://localhost:8000/api/preferences', { headers });
+      const prefsRes = await api.get('http://localhost:8000/api/preferences', { headers });
       setPreferences(prefsRes.data);
 
-      // Fetch stats
-      const statsRes = await axios.get('http://localhost:8000/api/plans/stats/dashboard', { headers });
+      const statsRes = await api.get('http://localhost:8000/api/plans/stats/dashboard', { headers });
       setStats(statsRes.data);
 
-      // Fetch suggestions from backend
       if (prefsRes.data) {
         try {
-          const suggestionsRes = await axios.get('http://localhost:8000/api/preferences/suggestions', { headers });
+          const suggestionsRes = await api.get('http://localhost:8000/api/preferences/suggestions', { headers });
           setSuggestions(suggestionsRes.data);
         } catch (error) {
           console.error('Failed to fetch suggestions:', error);
@@ -47,7 +42,6 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Dashboard fetch error:', error);
       if (error.response?.status === 404) {
-        // User doesn't have preferences yet
         setPreferences(null);
       }
     } finally {
@@ -72,7 +66,6 @@ const Dashboard = () => {
     );
   }
 
-  // User doesn't have preferences
   if (!preferences) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -98,7 +91,6 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Dashboard
@@ -106,7 +98,6 @@ const Dashboard = () => {
         <p className="text-gray-600">Privire de ansamblu asupra investițiilor tale</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3 mb-3">
@@ -142,7 +133,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Suggestions Section */}
       {suggestions && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
@@ -154,7 +144,6 @@ const Dashboard = () => {
             </span>
           </div>
 
-          {/* Strategy Info */}
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
             <div className="flex items-start justify-between">
               <div>
@@ -169,18 +158,15 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Allocations - UPDATED: Icons instead of emojis */}
           <div className="space-y-3 mb-6">
             <p className="text-sm font-semibold text-gray-900 mb-3">Alocarea Bugetului Lunar (${preferences.budget_monthly})</p>
             {suggestions.allocations.map((allocation, index) => {
-              // Convert iconName string to lucide-react component
               const IconComponent = getIcon(allocation.iconName);
               
               return (
                 <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      {/* Professional icon instead of emoji */}
                       <div className="p-2 bg-white rounded-lg border border-gray-200">
                         <IconComponent className={`w-6 h-6 ${allocation.color}`} />
                       </div>
@@ -202,7 +188,6 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Financial Projection */}
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
@@ -235,7 +220,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Recommendations */}
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
             <p className="text-sm font-semibold text-gray-900 mb-2">Recomandări:</p>
             <ul className="space-y-2">
@@ -250,7 +234,6 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           to="/plans"

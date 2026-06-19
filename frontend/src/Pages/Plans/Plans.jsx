@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Target, TrendingUp, Calendar, DollarSign, Trash2, X, AlertCircle, CheckCircle, ArrowRight, ArrowLeft, Info, GraduationCap, Home, ShoppingBag, Clock, TrendingUpIcon, Briefcase, FileText } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const Plans = () => {
@@ -51,7 +51,7 @@ const Plans = () => {
   const fetchPlans = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/plans', {
+      const response = await api.get('http://localhost:8000/api/plans', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPlans(response.data);
@@ -66,7 +66,7 @@ const Plans = () => {
   const fetchPreferences = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/preferences', {
+      const response = await api.get('http://localhost:8000/api/preferences', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUserPreferences(response.data);
@@ -90,7 +90,6 @@ const Plans = () => {
 
     if (monthly === 0) return;
 
-    // Calcul fără investiții - simplu
     const remaining = goal - initial;
     const monthsWithout = Math.ceil(remaining / monthly);
     const yearsWithout = Math.floor(monthsWithout / 12);
@@ -108,12 +107,11 @@ const Plans = () => {
       returnRate: 0
     };
 
-    // Calcul CU investiții - FORMULA CORECTĂ
     if (formData.with_investments && userPreferences) {
       let annualReturn = 7;
-      if (userPreferences.risk_level === 'low') annualReturn = 5;
-      if (userPreferences.risk_level === 'medium') annualReturn = 7;
-      if (userPreferences.risk_level === 'high') annualReturn = 12;
+      if (userPreferences.risk_level === 'low') annualReturn = 6;
+      if (userPreferences.risk_level === 'medium') annualReturn = 8;
+      if (userPreferences.risk_level === 'high') annualReturn = 10;
       const monthlyRate = annualReturn / 12 / 100;
       
       let monthsWith;
@@ -121,10 +119,8 @@ const Plans = () => {
       if (monthlyRate === 0) {
         monthsWith = monthsWithout;
       } else if (initial === 0) {
-        // Fără suma inițială - formula simplă
         monthsWith = Math.ceil(Math.log(1 + (goal * monthlyRate) / monthly) / Math.log(1 + monthlyRate));
       } else {
-        // Cu suma inițială - Newton-Raphson pentru FV = PV(1+r)^n + PMT × [(1+r)^n - 1] / r
         let n = 1;
         const maxIterations = 100;
         const tolerance = 0.01;
@@ -161,7 +157,6 @@ const Plans = () => {
       const yearsWith = Math.floor(monthsWith / 12);
       const remainingMonthsWith = monthsWith % 12;
 
-      // Future Value CORECT - include suma inițială
       const onePlusRn = Math.pow(1 + monthlyRate, monthsWith);
       const futureValueFromInitial = initial * onePlusRn;
       const futureValueFromPayments = monthly * (onePlusRn - 1) / monthlyRate;
@@ -181,7 +176,6 @@ const Plans = () => {
       };
     }
 
-    // Calcul Credit
     if (formData.payment_method === 'savings_plus_credit' && formData.credit_down_payment) {
       const downPayment = parseFloat(formData.credit_down_payment) || 0;
       const creditAmount = goal - downPayment;
@@ -278,7 +272,7 @@ const Plans = () => {
   const handleCreatePlan = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8000/api/plans', formData, {
+      const response = await api.post('http://localhost:8000/api/plans', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -315,9 +309,20 @@ const Plans = () => {
       return;
     }
 
+    const completionTarget = selectedPlan.payment_method === 'savings_plus_credit'
+    ? (selectedPlan.credit_total_payment || 0) + (selectedPlan.credit_down_payment || 0)
+    : selectedPlan.goal_amount;
+
+    const remaining = completionTarget - (selectedPlan.current_amount || 0);
+
+    if (parseFloat(contribution.amount) > remaining) {
+      toast.error(`Suma maxima este ${formatCurrency(remaining)}`);
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(
+      const response = await api.post(
         `http://localhost:8000/api/plans/${selectedPlan._id}/contribute`,
         { amount: parseFloat(contribution.amount), note: contribution.note },
         { headers: { Authorization: `Bearer ${token}` }}
@@ -338,7 +343,7 @@ const Plans = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8000/api/plans/${id}`, {
+      await api.delete(`http://localhost:8000/api/plans/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -354,7 +359,6 @@ const Plans = () => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
-  // Professional category icons instead of emojis
   const getCategoryIcon = (category) => {
     const icons = {
       'Studii': GraduationCap,
@@ -383,7 +387,6 @@ const Plans = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Planurile Mele</h1>
@@ -398,7 +401,6 @@ const Plans = () => {
         </button>
       </div>
 
-      {/* Plans List */}
       {plans.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
           <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -438,7 +440,6 @@ const Plans = () => {
                   </button>
                 </div>
 
-                {/* Progress */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-sm mb-2">
                     <span className="text-gray-600">Progres</span>
@@ -461,7 +462,6 @@ const Plans = () => {
                   </div>
                 </div>
 
-                {/* Info */}
                 <div className="space-y-2 text-sm mb-4">
                   {plan.payment_method === 'full_savings' && (
                     <>
@@ -521,7 +521,6 @@ const Plans = () => {
                   )}
                 </div>
 
-                {/* Actions */}
                 <button
                   onClick={() => {
                     setSelectedPlan(plan);
@@ -538,7 +537,6 @@ const Plans = () => {
         </div>
       )}
 
-      {/* Contribution Modal */}
       {showContributionModal && selectedPlan && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
@@ -556,7 +554,10 @@ const Plans = () => {
               <p className="text-sm text-gray-600">Plan: <span className="font-semibold text-gray-900">{selectedPlan.name}</span></p>
               <p className="text-sm text-gray-600">Progres actual: <span className="font-semibold text-gray-900">{selectedPlan.progress_percentage.toFixed(1)}%</span></p>
               <p className="text-sm text-gray-600 mt-2">
-                {formatCurrency(selectedPlan.current_amount)} din {formatCurrency(selectedPlan.goal_amount)}
+                {formatCurrency(selectedPlan.current_amount)} din {selectedPlan.payment_method === 'savings_plus_credit'
+                        ? formatCurrency((selectedPlan.credit_total_payment || 0) + (selectedPlan.credit_down_payment || 0))
+                        : formatCurrency(selectedPlan.goal_amount || 0)
+                        }
               </p>
             </div>
 
@@ -572,7 +573,9 @@ const Plans = () => {
                 />
                 {contribution.amount > 0 && (
                   <p className="text-sm text-gray-600 mt-2">
-                    Nou progres: {Math.min(((selectedPlan.current_amount + parseFloat(contribution.amount)) / selectedPlan.goal_amount * 100), 100).toFixed(1)}%
+                    Nou progres: {Math.min(((selectedPlan.current_amount + parseFloat(contribution.amount)) / (selectedPlan.payment_method === 'savings_plus_credit'
+                                  ? (selectedPlan.credit_total_payment || 0) + (selectedPlan.credit_down_payment || 0)
+                                  : selectedPlan.goal_amount)) * 100, 100).toFixed(1)}%            
                   </p>
                 )}
               </div>
@@ -607,12 +610,10 @@ const Plans = () => {
         </div>
       )}
 
-      {/* Create Plan Wizard - FIXED SCROLL */}
       {showWizard && (
         <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
           <div className="min-h-screen flex items-center justify-center p-4 py-8">
             <div className="bg-white rounded-2xl p-8 max-w-4xl w-full shadow-2xl my-8">
-              {/* Progress Steps */}
               <div className="mb-8">
                 <div className="flex items-center justify-between">
                   {[
@@ -652,7 +653,6 @@ const Plans = () => {
                 </div>
               </div>
 
-              {/* Step 1: Obiectiv */}
               {step === 1 && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -713,7 +713,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Step 2: Sumă Necesară */}
               {step === 2 && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -738,7 +737,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Step 3: Modalitate Plată */}
               {step === 3 && (
                 <div className="space-y-6 animate-fadeIn">
                   <div>
@@ -780,7 +778,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Step 4: Detalii Plată - Full Savings */}
               {step === 4 && formData.payment_method === 'full_savings' && (
                 <div className="space-y-6 animate-fadeIn max-h-[60vh] overflow-y-auto pr-2">
                   <div>
@@ -821,13 +818,12 @@ const Plans = () => {
                             <TrendingUpIcon className="w-5 h-5 text-blue-600" />
                             <p className="font-semibold text-gray-900 text-lg">Investește economiile</p>
                           </div>
-                          <p className="text-sm text-gray-600">Folosește strategia din preferințe pentru randament mai mare (risc {userPreferences.risk_tolerance})</p>
+                          <p className="text-sm text-gray-600">Folosește strategia din preferințe pentru randament mai mare (risc {userPreferences.risk_level})</p>
                         </div>
                       </label>
                     </div>
                   )}
 
-                  {/* Comparison */}
                   {calculations.monthsWithout > 0 && (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
@@ -836,7 +832,6 @@ const Plans = () => {
                       </div>
                       
                       <div className="grid grid-cols-2 gap-6">
-                        {/* Without Investments */}
                         <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300 rounded-2xl">
                           <div className="flex items-center gap-2 mb-4">
                             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
@@ -868,7 +863,6 @@ const Plans = () => {
                           </div>
                         </div>
 
-                        {/* With Investments */}
                         {formData.with_investments && calculations.monthsWith > 0 && (
                           <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 border-2 border-green-400 rounded-2xl shadow-lg">
                             <div className="flex items-center gap-2 mb-4">
@@ -929,7 +923,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Step 4: Credit Details */}
               {step === 4 && formData.payment_method === 'savings_plus_credit' && (
                 <div className="space-y-6 animate-fadeIn max-h-[60vh] overflow-y-auto pr-2">
                   <div>
@@ -1016,7 +1009,6 @@ const Plans = () => {
                     </div>
                   </div>
 
-                  {/* Credit Summary */}
                   {calculations.creditMonthly > 0 && (
                     <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl space-y-4">
                       <div className="flex items-center gap-2 mb-4">
@@ -1063,7 +1055,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Step 5: Review */}
               {step === 5 && (
                 <div className="space-y-6 animate-fadeIn max-h-[60vh] overflow-y-auto pr-2">
                   <div>
@@ -1181,7 +1172,6 @@ const Plans = () => {
                 </div>
               )}
 
-              {/* Navigation */}
               <div className="flex items-center justify-between mt-8 pt-6 border-t-2 border-gray-200">
                 <button
                   onClick={() => {

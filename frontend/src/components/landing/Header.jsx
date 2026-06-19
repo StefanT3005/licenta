@@ -9,7 +9,6 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-    // Conectează la AuthContext în loc de hardcoded values
     const { isAuthenticated, user, logout } = useContext(AuthContext);
 
     useEffect(() => {
@@ -36,7 +35,6 @@ const Header = () => {
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <div className="flex items-center justify-between">
                     
-                    {/* Logo */}
                     <Link to="/dashboard" className="flex items-center gap-3 cursor-pointer">
                         <div className="w-11.5 h-11.5 bg-blue-900 rounded-lg flex items-center justify-center shadow-sm">
                            <img src="/src/assets/logo.png" alt="Logo" className="w-7.5 h-7.5" />
@@ -46,7 +44,6 @@ const Header = () => {
                         </span>
                     </Link>
 
-                    {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-10">
                         {navLinks.map((link) => (
                             <a
@@ -69,7 +66,6 @@ const Header = () => {
                         ))}
                     </nav>
 
-                    {/* Desktop Auth Section */}
                     <div className="hidden lg:flex items-center gap-6">
                         {isAuthenticated ? ( 
                             <ProfileDropdown
@@ -104,7 +100,6 @@ const Header = () => {
                         )}
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <div className="lg:hidden">
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -115,10 +110,8 @@ const Header = () => {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
                 {isMenuOpen && (
                     <div className="lg:hidden mt-4 pb-4 space-y-4 bg-white border-t border-gray-100 pt-4">
-                        {/* Navigation Links */}
                         {navLinks.map((link) => (
                             <a 
                                 key={link.name} 
@@ -130,10 +123,8 @@ const Header = () => {
                             </a>
                         ))}
 
-                        {/* Auth Section */}
                         <div className="flex flex-col gap-4 mt-6 px-2">
                             {isAuthenticated ? (
-                                // User logged in - show user info and logout
                                 <>
                                     <div className="flex items-center gap-3 py-2 px-2 bg-gray-50 rounded-lg">
                                         <div className="w-10 h-10 bg-blue-900 rounded-full flex items-center justify-center text-white font-semibold">
@@ -162,7 +153,6 @@ const Header = () => {
                                     </button>
                                 </>
                             ) : (
-                                // User not logged in - show login and signup
                                 <>
                                     <Link 
                                         to="/login" 

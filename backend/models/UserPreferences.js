@@ -40,4 +40,8 @@ const userPreferencesSchema = new mongoose.Schema({
   timestamps: true
 });
 
+userPreferencesSchema.methods.isComplete = function() {
+  return !!(this.risk_level && this.horizon_months && this.budget_monthly);
+};
+
 module.exports = mongoose.model('UserPreferences', userPreferencesSchema);

@@ -1,13 +1,5 @@
 const UserPreferences = require('../models/UserPreferences');
 
-/**
- * Preferences Controller
- * Gestionează profilul investițional al utilizatorului
- */
-
-// @desc    Get user preferences
-// @route   GET /api/preferences
-// @access  Private
 exports.getPreferences = async (req, res) => {
   try {
     const preferences = await UserPreferences.findOne({ user: req.user.id });
@@ -26,14 +18,10 @@ exports.getPreferences = async (req, res) => {
   }
 };
 
-// @desc    Create or update user preferences
-// @route   POST /api/preferences
-// @access  Private
 exports.setPreferences = async (req, res) => {
   try {
     const { budget_monthly, risk_level, main_goal, horizon_months, notes } = req.body;
     
-    // Validare
     if (!budget_monthly || budget_monthly < 0) {
       return res.status(400).json({ message: 'Bugetul lunar trebuie să fie pozitiv' });
     }
@@ -50,11 +38,9 @@ exports.setPreferences = async (req, res) => {
       return res.status(400).json({ message: 'Orizontul de timp trebuie să fie minim 1 lună' });
     }
     
-    // Caută preferințele existente
     let preferences = await UserPreferences.findOne({ user: req.user.id });
     
     if (preferences) {
-      // Actualizează preferințele existente
       preferences.budget_monthly = budget_monthly;
       preferences.risk_level = risk_level;
       preferences.main_goal = main_goal;
@@ -68,7 +54,6 @@ exports.setPreferences = async (req, res) => {
         preferences
       });
     } else {
-      // Creează preferințe noi
       preferences = new UserPreferences({
         user: req.user.id,
         budget_monthly,
@@ -91,9 +76,6 @@ exports.setPreferences = async (req, res) => {
   }
 };
 
-// @desc    Check if user has preferences
-// @route   GET /api/preferences/check
-// @access  Private
 exports.checkPreferences = async (req, res) => {
   try {
     const preferences = await UserPreferences.findOne({ user: req.user.id });
@@ -108,9 +90,6 @@ exports.checkPreferences = async (req, res) => {
   }
 };
 
-// @desc    Delete user preferences
-// @route   DELETE /api/preferences
-// @access  Private
 exports.deletePreferences = async (req, res) => {
   try {
     const preferences = await UserPreferences.findOne({ user: req.user.id });
@@ -128,9 +107,6 @@ exports.deletePreferences = async (req, res) => {
   }
 };
 
-// @desc    Get suggestions based on preferences
-// @route   GET /api/preferences/suggestions
-// @access  Private
 exports.getSuggestions = async (req, res) => {
   try {
     const preferences = await UserPreferences.findOne({ user: req.user.id });

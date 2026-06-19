@@ -18,7 +18,7 @@ const News = () => {
     useEffect(() => {
         applyFilters();
         setCurrentPage(1);
-    }, [allNews]); // Am păstrat doar allNews aici ca dependență
+    }, [allNews]); 
 
     const fetchNews = async () => {
         try {
@@ -83,13 +83,11 @@ const News = () => {
     return (
         <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
 
-            {/* header */}
             <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">Știri Financiare</h1>
                 <p className="text-gray-500 text-sm">De actualitate, la nivel global.</p>
             </div>
 
-            {/* search */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm space-y-4">
                 <div className="flex gap-2">
                     <div className="relative flex-1">
@@ -126,7 +124,6 @@ const News = () => {
                 )}
             </div>
 
-            {/* grid stiri */}
             {paginatedNews.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {paginatedNews.map((article, index) => (
@@ -134,7 +131,6 @@ const News = () => {
                             key={index}
                             className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all group flex flex-col"
                         >
-                            {/* imagine */}
                             <div className="relative h-44 bg-gray-100 overflow-hidden flex-shrink-0">
                                 {article.urlToImage ? (
                                     <img
@@ -150,7 +146,6 @@ const News = () => {
                                 )}
                             </div>
 
-                            {/* content */}
                             <div className="p-4 flex flex-col flex-1">
                                 <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
                                     <Calendar className="w-3.5 h-3.5" />
@@ -192,7 +187,6 @@ const News = () => {
                 </div>
             )}
 
-            {/* paginare */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-4 pt-4">
                     <button

@@ -1,5 +1,7 @@
 import { ChevronDown, User, LogOut, Mail, LayoutDashboard, Newspaper, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useContext } from 'react';
+import { AuthContext } from "../../context/AuthContext";
 
 const ProfileDropdown = ({
   isOpen,
@@ -8,18 +10,18 @@ const ProfileDropdown = ({
   avatar,
   email,
   onLogout,
-  showDashboard = true, // Optional prop to show/hide Dashboard link
+  showDashboard = true,
 }) => {
+
   const navigate = useNavigate();
   const getInitials = (n) => {
     return n ? n.charAt(0).toUpperCase() : "U";
   };
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  const { user } = useContext(AuthContext);
+  
   return (
     <div className="relative">
-      {/* Trigger Button */}
       <button
         onClick={onToggle}
         className={`
@@ -28,7 +30,6 @@ const ProfileDropdown = ({
           ${isOpen ? "bg-blue-50 border-blue-100" : "hover:bg-gray-50 hover:border-gray-200"}
         `}
       >
-        {/* Avatar */}
         {avatar ? (
           <img
             src={avatar}
@@ -43,7 +44,6 @@ const ProfileDropdown = ({
           </div>
         )}
 
-        {/* Name & Label */}
         <div className="hidden sm:flex flex-col items-start text-left">
           <p className="text-sm font-semibold text-gray-800 leading-tight">
             {name}
@@ -51,7 +51,6 @@ const ProfileDropdown = ({
           <p className="text-xs text-gray-500 font-medium">Contul meu</p>
         </div>
 
-        {/* Chevron */}
         <ChevronDown
           className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${
             isOpen ? "rotate-180 text-blue-600" : ""
@@ -59,10 +58,8 @@ const ProfileDropdown = ({
         />
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-xl ring-1 ring-black/5 z-50 overflow-hidden origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* User Info Header */}
           <div className="px-5 py-4 bg-gray-50/50 border-b border-gray-100">
             <p className="text-sm font-semibold text-gray-900">{name}</p>
             <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
@@ -71,14 +68,12 @@ const ProfileDropdown = ({
             </div>
           </div>
 
-          {/* Menu Items */}
           <div className="p-2 space-y-1">
-            {/* Dashboard Link (Optional) */}
             {showDashboard && (
               <button
                 onClick={() => {
                   navigate("/dashboard");
-                  onToggle(); // Close dropdown
+                  onToggle();
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
               >
@@ -89,11 +84,10 @@ const ProfileDropdown = ({
               </button>
             )}
 
-            {/* Profile Link */}
             <button
               onClick={() => {
                 navigate("/profile");
-                onToggle(); // Close dropdown
+                onToggle(); 
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
             >
@@ -103,11 +97,10 @@ const ProfileDropdown = ({
               Vezi Profilul
             </button>
 
-            {/* News Link */}
             <button
               onClick={() => {
                 navigate("/news");
-                onToggle(); // Close dropdown
+                onToggle(); 
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
             >
@@ -117,12 +110,11 @@ const ProfileDropdown = ({
               Știri
             </button>
             
-            {/* Admin Panel Link (Only for Admins) */}
             {user?.is_admin && (
             <button
               onClick={() => {
                 navigate("/admin");
-                onToggle(); // Close dropdown
+                onToggle(); 
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 hover:text-blue-600 transition-colors group"
             >
@@ -132,8 +124,7 @@ const ProfileDropdown = ({
               Admin Panel
             </button>
             )}
-
-            {/* Logout Button */}
+          
             <button
               onClick={onLogout}
               className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-colors group"

@@ -12,7 +12,7 @@ import {
   XCircle,
   AlertTriangle
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
@@ -35,12 +35,10 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Fetch system stats
-      const statsRes = await axios.get('http://localhost:8000/api/admin/stats', { headers });
+      const statsRes = await api.get('http://localhost:8000/api/admin/stats', { headers });
       setStats(statsRes.data);
 
-      // Fetch users
-      const usersRes = await axios.get('http://localhost:8000/api/admin/users', {
+      const usersRes = await api.get('http://localhost:8000/api/admin/users', {
         headers,
         params: { search: searchTerm, sortBy, order: sortOrder }
       });
@@ -62,7 +60,7 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8000/api/admin/users/${userToDelete._id}`, {
+      await api.delete(`http://localhost:8000/api/admin/users/${userToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -79,7 +77,7 @@ const AdminDashboard = () => {
   const handleToggleAdmin = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(
+      await api.patch(
         `http://localhost:8000/api/admin/users/${userId}/toggle-admin`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
@@ -108,7 +106,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
           Panou Administrator
@@ -116,10 +113,8 @@ const AdminDashboard = () => {
         <p className="text-gray-600">Gestionare utilizatori și statistici sistem</p>
       </div>
 
-      {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Users */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-blue-50 rounded-lg">
@@ -134,7 +129,6 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Recent Signups */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-green-50 rounded-lg">
@@ -148,7 +142,6 @@ const AdminDashboard = () => {
             </p>
           </div>
 
-          {/* Total Plans */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-purple-50 rounded-lg">
@@ -163,7 +156,6 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Financial Stats */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-orange-50 rounded-lg">
@@ -181,12 +173,10 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Users Table Section */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Utilizatori Sistem</h2>
+          <h2 className="text-xl font-bold text-gray-900">Utilizatori</h2>
           <div className="flex items-center gap-4">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -198,7 +188,6 @@ const AdminDashboard = () => {
               />
             </div>
 
-            {/* Sort */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -218,7 +207,6 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Users Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
@@ -302,7 +290,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && userToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">

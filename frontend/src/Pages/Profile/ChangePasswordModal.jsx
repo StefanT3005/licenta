@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
@@ -33,7 +33,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       toast.error('Completează toate câmpurile');
       return;
@@ -69,17 +68,14 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
       toast.success('Parola a fost schimbată cu succes!');
       
-      // Reset form
       setFormData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
 
-      // Close modal
       onClose();
 
-      // Optional: Logout user to re-login with new password
       setTimeout(() => {
         if (window.confirm('Vrei să te deloghezi pentru a te reconecta cu noua parolă?')) {
           localStorage.removeItem('token');
@@ -100,7 +96,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-100 rounded-lg">
@@ -116,9 +111,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Current Password */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">
               Parola Curentă
@@ -143,7 +136,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* New Password */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">
               Parola Nouă
@@ -168,7 +160,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Confirm Password */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2">
               Confirmă Parola Nouă
@@ -193,7 +184,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Password Requirements */}
           <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl">
             <p className="text-xs text-gray-700">
               <strong>Cerințe parolă:</strong>
@@ -208,7 +198,6 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
             </ul>
           </div>
 
-          {/* Buttons */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"

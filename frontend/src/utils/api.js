@@ -7,7 +7,6 @@ const api = axios.create({
     }
 });
 
-// adauga token la fiecare request automat
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -16,7 +15,6 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// daca tokenul e expirat, logout automat
 api.interceptors.response.use(
     (response) => response,
     (error) => {

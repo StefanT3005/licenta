@@ -4,10 +4,8 @@ import { AuthContext } from '../../context/AuthContext';
 import DashboardLayout from '../layout/DashboardLayout';
 
 const ProtectedRoute = ({ children }) => {
-  // Conectează la AuthContext în loc de hardcoded values
   const { isAuthenticated, loading } = useContext(AuthContext);
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -19,12 +17,10 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // Not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Authenticated, show protected content wrapped in DashboardLayout
   return (
     <DashboardLayout>
       {children ? children : <Outlet />}

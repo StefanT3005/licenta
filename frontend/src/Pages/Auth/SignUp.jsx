@@ -25,7 +25,6 @@ const SignUp = () => {
     });
     setError('');
 
-    // Calculate password strength
     if (name === 'password') {
       calculatePasswordStrength(value);
     }
@@ -56,7 +55,6 @@ const SignUp = () => {
     setLoading(true);
     setError('');
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Parolele nu coincid');
       setLoading(false);
@@ -72,7 +70,6 @@ const SignUp = () => {
     const result = await signup(formData.name, formData.email, formData.password);
 
     if (result.success) {
-      // ✨ Redirect direct la /preferences după signup (e prima dată)
       navigate('/preferences');
     } else {
       setError(result.error);
@@ -83,29 +80,25 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/3 left-1/3 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      {/* Floating financial symbols */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-24 right-24 text-indigo-400/5 text-9xl font-bold animate-float">₿</div>
         <div className="absolute bottom-40 left-24 text-blue-400/5 text-9xl font-bold animate-float-delayed">₹</div>
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo and Title */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl mb-4 shadow-lg shadow-indigo-500/20">
-            <TrendingUp className="w-8 h-8 text-white" strokeWidth={2.5} />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-blue-500/20">
+            <img src="/src/assets/logo.png" alt="Logo" className="w-7.5 h-7.5" /> 
           </div>
           <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">TS FinVest</h1>
           <p className="text-slate-400 text-sm">Începe călătoria ta financiară</p>
         </div>
 
-        {/* Signup Card */}
         <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-800/50 p-8 animate-slide-up">
           <h2 className="text-2xl font-bold text-white mb-2">Creează cont</h2>
           <p className="text-slate-400 mb-6 text-sm">Înregistrează-te și descoperă oportunitățile</p>
@@ -118,7 +111,6 @@ const SignUp = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name Input */}
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-slate-300">
                 Nume complet
@@ -138,7 +130,6 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Email Input */}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-slate-300">
                 Email
@@ -158,7 +149,6 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Password Input */}
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-slate-300">
                 Parolă
@@ -176,7 +166,6 @@ const SignUp = () => {
                   placeholder="••••••••"
                 />
               </div>
-              {/* Password Strength Indicator */}
               {formData.password && (
                 <div className="space-y-2 animate-fade-in">
                   <div className="flex gap-1">
@@ -198,7 +187,6 @@ const SignUp = () => {
               )}
             </div>
 
-            {/* Confirm Password Input */}
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300">
                 Confirmă parola
@@ -221,7 +209,6 @@ const SignUp = () => {
               </div>
             </div>
 
-            {/* Terms and Conditions */}
             <div className="flex items-start gap-3 pt-2">
               <input
                 type="checkbox"
@@ -241,7 +228,6 @@ const SignUp = () => {
               </label>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -261,7 +247,6 @@ const SignUp = () => {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-700/50"></div>
@@ -271,7 +256,6 @@ const SignUp = () => {
             </div>
           </div>
 
-          {/* Login Link */}
           <p className="text-center text-slate-400 text-sm">
             Ai deja cont?{' '}
             <Link 
@@ -283,9 +267,8 @@ const SignUp = () => {
           </p>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-slate-500 text-xs mt-6 animate-fade-in-delayed">
-          © 2025 TS FinVest. Toate drepturile rezervate.
+          © 2026 TS FinVest. Toate drepturile rezervate.
         </p>
       </div>
 

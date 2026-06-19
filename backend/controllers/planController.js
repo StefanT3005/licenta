@@ -2,9 +2,6 @@ const Plan = require('../models/Plan');
 const UserPreferences = require('../models/UserPreferences');
 const financialCalc = require('../utils/financialCalculations');
 
-// @desc    Create new plan with comprehensive calculations
-// @route   POST /api/plans
-// @access  Private
 exports.createPlan = async (req, res) => {
   try {
     const {
@@ -17,13 +14,11 @@ exports.createPlan = async (req, res) => {
       payment_method,
       monthly_savings,
       with_investments,
-      // Pentru credit
       credit_down_payment,
       credit_interest_rate,
       credit_term_years
     } = req.body;
 
-    // Validare bază
     if (!category || !name || !goal_amount || !payment_method) {
       return res.status(400).json({ message: 'Câmpuri obligatorii lipsesc' });
     }
@@ -40,17 +35,6 @@ exports.createPlan = async (req, res) => {
       payment_method
     };
 
-    // Calcul ajustare inflație (3% presupus)
-    if (deadline) {
-      const yearsUntilDeadline = (new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24 * 365);
-      planData.inflation_adjusted_amount = financialCalc.calculateInflationAdjustedAmount(
-        goal_amount,
-        3, // 3% inflație anuală
-        yearsUntilDeadline
-      );
-    }
-
-    // Calcule pentru SURSĂ PROPRIE INTEGRALĂ
     if (payment_method === 'full_savings') {
       if (!monthly_savings) {
         return res.status(400).json({ message: 'Economiile lunare sunt obligatorii' });
@@ -61,7 +45,6 @@ exports.createPlan = async (req, res) => {
 
       const remaining = goal_amount - (initial_savings || 0);
 
-      // Calcul FĂRĂ investiții
       planData.months_without_investments = financialCalc.calculateMonthsWithoutInvestments(
         goal_amount,
         monthly_savings,
@@ -69,9 +52,7 @@ exports.createPlan = async (req, res) => {
       );
       planData.total_saved_without_investments = remaining;
 
-      // Calcul CU investiții (dacă selectat)
       if (with_investments) {
-        // Preia preferințe utilizator pentru randament
         const preferences = await UserPreferences.findOne({ user: req.user.id });
         
         if (!preferences) {
@@ -80,10 +61,9 @@ exports.createPlan = async (req, res) => {
           });
         }
 
-        // Calculează randament bazat pe risc
-        let annualReturn = 7; // Default echilibrat
-        if (preferences.risk_tolerance === 'low') annualReturn = 5;
-        if (preferences.risk_tolerance === 'high') annualReturn = 12;
+        let annualReturn = 8; 
+        if (preferences.risk_level === 'low') annualReturn = 6;
+        if (preferences.risk_level === 'high') annualReturn = 10;
 
         planData.investment_return_rate = annualReturn;
         
@@ -106,7 +86,6 @@ exports.createPlan = async (req, res) => {
           planData.total_invested
         );
 
-        // Generează alocări din preferințe
         const { generateSuggestions } = require('../utils/suggestionAlgorithm');
         const suggestions = generateSuggestions(preferences.toObject());
         planData.investment_allocations = suggestions.allocations.map(alloc => ({
@@ -117,7 +96,6 @@ exports.createPlan = async (req, res) => {
       }
     }
 
-    // Calcule pentru CREDIT BANCAR
     if (payment_method === 'savings_plus_credit') {
       if (!credit_down_payment || !credit_interest_rate || !credit_term_years) {
         return res.status(400).json({ 
@@ -125,7 +103,6 @@ exports.createPlan = async (req, res) => {
         });
       }
 
-      // Validare avans minim 25%
       const minimumDownPayment = goal_amount * 0.25;
       if (credit_down_payment < minimumDownPayment) {
         return res.status(400).json({ 
@@ -138,31 +115,26 @@ exports.createPlan = async (req, res) => {
       planData.credit_interest_rate = credit_interest_rate;
       planData.credit_term_years = credit_term_years;
 
-      // Calculează rată lunară
       planData.credit_monthly_payment = financialCalc.calculateMonthlyPayment(
         planData.credit_amount,
         credit_interest_rate,
         credit_term_years
       );
 
-      // Calculează total de plătit
       planData.credit_total_payment = financialCalc.calculateTotalPayment(
         planData.credit_monthly_payment,
         credit_term_years
       );
 
-      // Calculează dobândă totală
       planData.credit_total_interest = financialCalc.calculateTotalInterest(
         planData.credit_total_payment,
         planData.credit_amount
       );
 
-      // Calculează venit minim necesar
       planData.minimum_income_required = financialCalc.calculateMinimumIncome(
         planData.credit_monthly_payment
       );
 
-      // Dacă are economii lunare pentru avans
       if (monthly_savings) {
         planData.monthly_savings = monthly_savings;
         planData.months_without_investments = financialCalc.calculateMonthsWithoutInvestments(
@@ -173,10 +145,14 @@ exports.createPlan = async (req, res) => {
       }
     }
 
-    // Calculează progres inițial
+
+    const target = planData.payment_method === 'savings_plus_credit'
+    ? (planData.credit_total_payment || 0) + (planData.credit_down_payment || 0)
+    : goal_amount;
+
     planData.progress_percentage = financialCalc.calculateProgress(
-      planData.current_amount,
-      goal_amount
+    planData.current_amount,
+    target
     );
 
     const plan = await Plan.create(planData);
@@ -188,9 +164,6 @@ exports.createPlan = async (req, res) => {
   }
 };
 
-// @desc    Get all user plans
-// @route   GET /api/plans
-// @access  Private
 exports.getPlans = async (req, res) => {
   try {
     const plans = await Plan.find({ user: req.user.id }).sort({ createdAt: -1 });
@@ -200,9 +173,6 @@ exports.getPlans = async (req, res) => {
   }
 };
 
-// @desc    Get single plan
-// @route   GET /api/plans/:id
-// @access  Private
 exports.getPlan = async (req, res) => {
   try {
     const plan = await Plan.findById(req.params.id);
@@ -221,44 +191,41 @@ exports.getPlan = async (req, res) => {
   }
 };
 
-// @desc    Add contribution to plan
-// @route   POST /api/plans/:id/contribute
-// @access  Private
 exports.addContribution = async (req, res) => {
-  try {
-    const { amount, note } = req.body;
+    try {
+        const { amount, note } = req.body;
 
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Suma trebuie să fie pozitivă' });
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ message: 'Suma trebuie sa fie pozitiva' });
+        }
+
+        const plan = await Plan.findById(req.params.id);
+
+        if (!plan) return res.status(404).json({ message: 'Planul nu exista' });
+
+        if (plan.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Nu ai acces la acest plan' });
+        }
+
+        const completionTarget = plan.payment_method === 'savings_plus_credit'
+            ? (plan.credit_total_payment || 0) + (plan.credit_down_payment || 0)
+            : plan.goal_amount;
+
+        plan.current_amount = (plan.current_amount || 0) + parseFloat(amount);
+        plan.progress_percentage = Math.min((plan.current_amount / completionTarget) * 100, 100);
+
+        if (plan.current_amount >= completionTarget) {
+            plan.status = 'completed';
+        }
+
+        await plan.save();
+
+        res.status(200).json(plan);
+    } catch (error) {
+        res.status(500).json({ message: 'Eroare la adaugarea contributiei' });
     }
-
-    const plan = await Plan.findById(req.params.id);
-
-    if (!plan) {
-      return res.status(404).json({ message: 'Planul nu există' });
-    }
-
-    if (plan.user.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Nu ai acces la acest plan' });
-    }
-
-    await plan.addContribution(amount, note);
-
-    // Check if goal reached
-    if (plan.current_amount >= plan.goal_amount) {
-      plan.status = 'completed';
-      await plan.save();
-    }
-
-    res.json(plan);
-  } catch (error) {
-    res.status(500).json({ message: 'Eroare la adăugarea contribuției', error: error.message });
-  }
 };
 
-// @desc    Update plan
-// @route   PUT /api/plans/:id
-// @access  Private
 exports.updatePlan = async (req, res) => {
   try {
     const plan = await Plan.findById(req.params.id);
@@ -283,9 +250,6 @@ exports.updatePlan = async (req, res) => {
   }
 };
 
-// @desc    Delete plan
-// @route   DELETE /api/plans/:id
-// @access  Private
 exports.deletePlan = async (req, res) => {
   try {
     const plan = await Plan.findById(req.params.id);
@@ -305,9 +269,6 @@ exports.deletePlan = async (req, res) => {
   }
 };
 
-// @desc    Get dashboard stats
-// @route   GET /api/plans/stats/dashboard
-// @access  Private
 exports.getDashboardStats = async (req, res) => {
   try {
     const plans = await Plan.find({ user: req.user.id });
@@ -316,7 +277,11 @@ exports.getDashboardStats = async (req, res) => {
       totalPlans: plans.length,
       activePlans: plans.filter(p => p.status === 'active').length,
       completedPlans: plans.filter(p => p.status === 'completed').length,
-      totalGoalAmount: plans.reduce((sum, p) => sum + p.goal_amount, 0),
+      totalGoalAmount: plans.reduce((sum, p) => {
+        const target = p.payment_method === 'savings_plus_credit'
+          ? (p.credit_total_payment || 0) + (p.credit_down_payment || 0)
+          : p.goal_amount;
+          return sum + target;}, 0),
       totalCurrentAmount: plans.reduce((sum, p) => sum + p.current_amount, 0),
       averageProgress: plans.length > 0 
         ? plans.reduce((sum, p) => sum + p.progress_percentage, 0) / plans.length 

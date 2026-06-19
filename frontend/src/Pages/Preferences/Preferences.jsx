@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, TrendingUp, Target, Calendar, ArrowRight, Loader, Shield, Scale, Zap, Home, GraduationCap, AlertCircle, TrendingUpIcon, Info } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const Preferences = () => {
@@ -16,7 +16,6 @@ const Preferences = () => {
     notes: ''
   });
 
-  // Verifică dacă utilizatorul are deja preferințe
   useEffect(() => {
     checkExistingPreferences();
   }, []);
@@ -24,11 +23,10 @@ const Preferences = () => {
   const checkExistingPreferences = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/preferences', {
+      const response = await api.get('http://localhost:8000/api/preferences', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Dacă are preferințe, pre-populează formularul
       if (response.data) {
         setFormData({
           budget_monthly: response.data.budget_monthly.toString(),
@@ -39,7 +37,6 @@ const Preferences = () => {
         });
       }
     } catch (error) {
-      // Nu are preferințe - e OK, afișăm formularul gol
       console.log('No existing preferences');
     } finally {
       setCheckingExisting(false);
@@ -54,7 +51,6 @@ const Preferences = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validare
     if (!formData.budget_monthly || parseFloat(formData.budget_monthly) <= 0) {
       toast.error('Introduceți un buget lunar valid');
       return;
@@ -69,7 +65,7 @@ const Preferences = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      await api.post(
         'http://localhost:8000/api/preferences',
         {
           budget_monthly: parseFloat(formData.budget_monthly),
@@ -143,7 +139,6 @@ const Preferences = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Setează-ți Profilul Investițional
@@ -153,10 +148,8 @@ const Preferences = () => {
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Buget Lunar */}
             <div>
               <label className="flex items-center text-lg font-semibold text-gray-800 mb-3">
                 <DollarSign className="w-6 h-6 mr-2 text-indigo-600" />
@@ -183,7 +176,6 @@ const Preferences = () => {
               </p>
             </div>
 
-            {/* Nivel Risc */}
             <div>
               <label className="flex items-center text-lg font-semibold text-gray-800 mb-3">
                 <TrendingUp className="w-6 h-6 mr-2 text-indigo-600" />
@@ -214,7 +206,6 @@ const Preferences = () => {
               </div>
             </div>
 
-            {/* Obiectiv Principal */}
             <div>
               <label className="flex items-center text-lg font-semibold text-gray-800 mb-3">
                 <Target className="w-6 h-6 mr-2 text-indigo-600" />
@@ -246,7 +237,6 @@ const Preferences = () => {
               </div>
             </div>
 
-            {/* Orizont Timp */}
             <div>
               <label className="flex items-center text-lg font-semibold text-gray-800 mb-3">
                 <Calendar className="w-6 h-6 mr-2 text-indigo-600" />
@@ -275,7 +265,6 @@ const Preferences = () => {
               </div>
             </div>
 
-            {/* Notes */}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 Notițe opționale
@@ -291,7 +280,6 @@ const Preferences = () => {
               />
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
@@ -312,7 +300,6 @@ const Preferences = () => {
           </form>
         </div>
 
-        {/* Info Footer */}
         <div className="flex items-center justify-center gap-2 mt-6 text-sm text-gray-600">
           <Info className="w-4 h-4" />
           <span>Poți schimba aceste preferințe oricând din Dashboard</span>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, CheckCircle, XCircle, Loader } from 'lucide-react';
-import axios from 'axios';
+import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,7 +9,7 @@ const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { updateUser } = useAuth();
-  const [status, setStatus] = useState('loading'); // loading, success, error
+  const [status, setStatus] = useState('loading'); 
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const VerifyEmail = () => {
       }
 
       try {
-        const response = await axios.post('http://localhost:8000/api/auth/verify-email', {
+        const response = await api.post('http://localhost:8000/api/auth/verify-email', {
           token
         });
 
@@ -31,12 +31,10 @@ const VerifyEmail = () => {
         setMessage(response.data.message || 'Email verificat cu succes!');
         toast.success('Email verificat cu succes!');
 
-        // Update user in context
         if (response.data.user) {
           updateUser(response.data.user);
         }
 
-        // Redirect to dashboard after 3 seconds
         setTimeout(() => {
           navigate('/dashboard');
         }, 3000);
@@ -49,8 +47,7 @@ const VerifyEmail = () => {
     };
 
     verifyEmail();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
+  }, []); 
 
   const handleResendEmail = async () => {
     try {
@@ -61,7 +58,7 @@ const VerifyEmail = () => {
         return;
       }
 
-      await axios.post(
+      await api.post(
         'http://localhost:8000/api/auth/resend-verification',
         {},
         { headers: { Authorization: `Bearer ${token}` }}
@@ -77,7 +74,7 @@ const VerifyEmail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Icon */}
+    
         <div className="flex justify-center mb-6">
           {status === 'loading' && (
             <div className="p-4 bg-blue-100 rounded-full">
@@ -96,13 +93,11 @@ const VerifyEmail = () => {
           )}
         </div>
 
-        {/* Title */}
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
           <Mail className="w-6 h-6 inline-block mr-2" />
           Verificare Email
         </h1>
 
-        {/* Message */}
         <div className="text-center mb-6">
           {status === 'loading' && (
             <p className="text-gray-600">
@@ -127,7 +122,6 @@ const VerifyEmail = () => {
           )}
         </div>
 
-        {/* Action Buttons */}
         {status === 'success' && (
           <button
             onClick={() => navigate('/dashboard')}

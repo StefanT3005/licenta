@@ -1,4 +1,3 @@
-// frontend/src/utils/iconMap.js
 import { 
   Shield, 
   TrendingUp, 
@@ -12,10 +11,6 @@ import {
   Home
 } from 'lucide-react';
 
-/**
- * Icon mapping pentru convertire string → lucide-react component
- * Folosit în Dashboard pentru a afișa icons din suggestionAlgorithm
- */
 const iconMap = {
   Shield,
   TrendingUp,
@@ -29,13 +24,8 @@ const iconMap = {
   Home
 };
 
-/**
- * Returnează componenta icon bazată pe nume (string)
- * @param {string} iconName - Numele iconului (ex: 'Shield', 'Bitcoin')
- * @returns {Component} - Lucide-react icon component
- */
 export const getIcon = (iconName) => {
-  return iconMap[iconName] || Target; // Default fallback icon
+  return iconMap[iconName] || Target;
 };
 
 export default iconMap;

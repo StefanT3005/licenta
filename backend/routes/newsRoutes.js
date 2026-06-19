@@ -10,14 +10,12 @@ router.get('/all', async (req, res) => {
                 language: 'en',
                 sortBy: 'publishedAt',
                 pageSize: 100,
-                // Cerem API-ului exclusiv domeniul cnbc.com
                 domains: 'cnbc.com', 
                 apiKey: process.env.NEWS_API_KEY
             }
         });
 
         const articles = response.data.articles
-            // Ne asigurăm că articolul există și nu a fost marcat ca [Removed] de API
             .filter(a => a.title && a.url && a.title !== '[Removed]') 
             .slice(0, 60)
             .map(a => ({
@@ -25,7 +23,6 @@ router.get('/all', async (req, res) => {
                 description: a.description || '',
                 url: a.url,
                 publishedAt: a.publishedAt,
-                // Din moment ce am cerut doar cnbc.com, forțăm numele să arate curat în interfață
                 source: 'CNBC', 
                 urlToImage: a.urlToImage || null
             }));

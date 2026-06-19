@@ -24,13 +24,11 @@ const App = () => {
     <div>
       <Router>
         <Routes>
-          {/* Pagini publice */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify-email" element={<VerifyEmail />} /> 
 
-          {/* ✨ Preferences - Onboarding standalone (FĂRĂ sidebar) */}
           <Route 
             path="/preferences" 
             element={
@@ -40,7 +38,6 @@ const App = () => {
             } 
           />
 
-          {/* Pagini cu DashboardLayout (cu sidebar) */}
           <Route path="/" element={<ProtectedRoute />}>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="plans" element={<Plans />} />
@@ -49,7 +46,6 @@ const App = () => {
             <Route path="admin" element={<Admin />} />
           </Route>
 
-          {/* Redirect pentru rute invalide */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

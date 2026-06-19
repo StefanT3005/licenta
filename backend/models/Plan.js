@@ -6,7 +6,6 @@ const planSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  // Obiectiv
   category: {
     type: String,
     enum: ['Studii', 'Locuință', 'Bunuri Diverse'],
@@ -26,13 +25,9 @@ const planSchema = new mongoose.Schema({
     type: Date
   },
   
-  // Sumă
   goal_amount: {
     type: Number,
     required: true
-  },
-  inflation_adjusted_amount: {
-    type: Number
   },
   current_amount: {
     type: Number,
@@ -43,25 +38,22 @@ const planSchema = new mongoose.Schema({
     default: 0
   },
   
-  // Modalitate plată
   payment_method: {
     type: String,
     enum: ['full_savings', 'savings_plus_credit'],
     required: true
   },
   
-  // Pentru economisire completă
   monthly_savings: {
     type: Number
   },
   
-  // Investiții (dacă alege cu investiții)
   with_investments: {
     type: Boolean,
     default: false
   },
   investment_return_rate: {
-    type: Number // % anual
+    type: Number 
   },
   investment_allocations: [{
     asset: String,
@@ -69,7 +61,6 @@ const planSchema = new mongoose.Schema({
     monthly_amount: Number
   }],
   
-  // Calcule - fără investiții
   months_without_investments: {
     type: Number
   },
@@ -77,7 +68,6 @@ const planSchema = new mongoose.Schema({
     type: Number
   },
   
-  // Calcule - cu investiții
   months_with_investments: {
     type: Number
   },
@@ -88,33 +78,31 @@ const planSchema = new mongoose.Schema({
     type: Number
   },
   
-  // Pentru credit bancar
   credit_down_payment: {
-    type: Number // Avans (min 25%)
+    type: Number
   },
   credit_amount: {
-    type: Number // Suma împrumutată
+    type: Number
   },
   credit_interest_rate: {
-    type: Number // % anual
+    type: Number 
   },
   credit_term_years: {
-    type: Number // Ani
+    type: Number 
   },
   credit_monthly_payment: {
-    type: Number // Rată lunară
+    type: Number 
   },
   credit_total_payment: {
-    type: Number // Total de plătit
+    type: Number
   },
   credit_total_interest: {
-    type: Number // Dobândă totală
+    type: Number 
   },
   minimum_income_required: {
-    type: Number // Venit minim (rata ≤ 40%)
+    type: Number 
   },
   
-  // Tracking
   contributions: [{
     amount: Number,
     date: {
@@ -126,7 +114,7 @@ const planSchema = new mongoose.Schema({
   
   status: {
     type: String,
-    enum: ['active', 'completed', 'paused'],
+    enum: ['active', 'completed'],
     default: 'active'
   },
   progress_percentage: {
@@ -137,13 +125,18 @@ const planSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Calculate progress
 planSchema.methods.updateProgress = function() {
-  this.progress_percentage = (this.current_amount / this.goal_amount) * 100;
+  const target = this.payment_method === 'savings_plus_credit'
+    ? (this.credit_total_payment || 0) + (this.credit_down_payment || 0)
+    : this.goal_amount;
+
+  this.progress_percentage = target > 0 
+    ? (this.current_amount / target) * 100 
+    : 0;
+
   return this.progress_percentage;
 };
 
-// Add contribution
 planSchema.methods.addContribution = function(amount, note = '') {
   this.contributions.push({ amount, note });
   this.current_amount += amount;

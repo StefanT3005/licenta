@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-// Configure email transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
@@ -16,10 +15,8 @@ const createTransporter = () => {
   });
 };
 
-// Send verification email helper
 const sendVerificationEmail = async (user) => {
   try {
-    // Generate verification token (valid for 24 hours)
     const verificationToken = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
@@ -104,7 +101,6 @@ const sendVerificationEmail = async (user) => {
   }
 };
 
-// @desc    Register new user
 exports.signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -129,7 +125,6 @@ exports.signup = async (req, res) => {
       emailVerified: false
     });
 
-    // Send verification email
     await sendVerificationEmail(user);
 
     const token = jwt.sign(
@@ -147,7 +142,7 @@ exports.signup = async (req, res) => {
         is_admin: user.is_admin,
         emailVerified: user.emailVerified
       },
-      message: 'Cont creat! Verifică email-ul pentru a activa contul.'
+      message: 'Cont creat! Verifică email-ul pentru a îl verifica.'
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -155,8 +150,7 @@ exports.signup = async (req, res) => {
   }
 };
 
-// @desc    Login user
-exports.login = async (req, res) => {
+exports.login = async (req, res ) => {
   try {
     const { email, password } = req.body;
 
@@ -196,12 +190,11 @@ exports.login = async (req, res) => {
   }
 };
 
-// @desc    Logout user
 exports.logout = async (req, res) => {
   res.status(200).json({ message: 'Deconectat cu succes' });
 };
 
-// @desc    Get current user
+
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -215,7 +208,6 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// @desc    Update user profile
 exports.updateProfile = async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -244,9 +236,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// @desc    Verify email with token
-// @route   POST /api/auth/verify-email
-// @access  Public
 exports.verifyEmail = async (req, res) => {
   try {
     const { token } = req.body;
@@ -255,10 +244,8 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ message: 'Token lipsă' });
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Update user
     const user = await User.findByIdAndUpdate(
       decoded.userId,
       { emailVerified: true },
@@ -285,9 +272,6 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-// @desc    Resend verification email
-// @route   POST /api/auth/resend-verification
-// @access  Private
 exports.resendVerification = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -311,7 +295,6 @@ exports.resendVerification = async (req, res) => {
   }
 };
 
-// @desc    Change password
 exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -342,11 +325,10 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// @desc    Delete user account
 exports.deleteAccount = async (req, res) => {
   try {
-    await Plan.deleteMany({ user_id: req.user._id });
-    await Preferences.deleteMany({ user_id: req.user._id });
+    await Plan.deleteMany({ user: req.user._id });
+    await Preferences.deleteMany({ user: req.user._id });
     await User.findByIdAndDelete(req.user._id);
 
     res.status(200).json({ message: 'Cont șters cu succes' });
