@@ -38,8 +38,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (formData.newPassword.length < 6) {
-      toast.error('Parola nouă trebuie să aibă minim 6 caractere');
+    if (formData.newPassword.length < 8) {
+      toast.error('Parola nouă trebuie să aibă minim 8 caractere');
       return;
     }
 
@@ -56,14 +56,12 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        'http://localhost:8000/api/auth/change-password',
+      await api.put(
+        'auth/change-password',
         {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword
-        },
-        { headers: { Authorization: `Bearer ${token}` }}
+        }
       );
 
       toast.success('Parola a fost schimbată cu succes!');
@@ -148,7 +146,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                 value={formData.newPassword}
                 onChange={handleChange}
                 className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Introdu parola nouă (min. 6 caractere)"
+                placeholder="Introdu parola nouă (min. 8 caractere)"
               />
               <button
                 type="button"
@@ -189,8 +187,8 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
               <strong>Cerințe parolă:</strong>
             </p>
             <ul className="text-xs text-gray-600 mt-1 space-y-1">
-              <li className={formData.newPassword.length >= 6 ? 'text-green-600' : ''}>
-                • Minim 6 caractere {formData.newPassword.length >= 6 && '✓'}
+              <li className={formData.newPassword.length >= 8 ? 'text-green-600' : ''}>
+                • Minim 8 caractere {formData.newPassword.length >= 8 && '✓'}
               </li>
               <li className={formData.newPassword === formData.confirmPassword && formData.confirmPassword ? 'text-green-600' : ''}>
                 • Parolele se potrivesc {formData.newPassword === formData.confirmPassword && formData.confirmPassword && '✓'}

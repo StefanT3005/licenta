@@ -29,12 +29,12 @@ exports.calculateMonthsWithInvestments = (goalAmount, monthlySavings, annualRetu
     const onePlusR = 1 + monthlyRate;
     const onePlusRn = Math.pow(onePlusR, n);
     
-    // f(n) = PV(1+r)^n + PMT × [(1+r)^n - 1] / r - FV
+    // f(n) = PV(1+r)^n + PMT * [(1+r)^n - 1] / r - FV
     const f = currentAmount * onePlusRn + 
               monthlySavings * (onePlusRn - 1) / monthlyRate - 
               goalAmount;
     
-    // f'(n) = PV × ln(1+r) × (1+r)^n + PMT × ln(1+r) × (1+r)^n / r
+    // f'(n) = PV * ln(1+r) * (1+r)^n + PMT * ln(1+r) * (1+r)^n / r
     const ln1r = Math.log(onePlusR);
     const df = currentAmount * ln1r * onePlusRn + 
                monthlySavings * ln1r * onePlusRn / monthlyRate;

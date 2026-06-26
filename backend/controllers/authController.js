@@ -31,7 +31,7 @@ const sendVerificationEmail = async (user) => {
       const mailOptions = {
         from: `"TS FinVest" <${process.env.EMAIL_USER}>`,
         to: user.email,
-        subject: 'Verifică-ți Email-ul - TS FinVest',
+        subject: 'Verificare email, echipa TS FinVest',
         html: `
           <!DOCTYPE html>
           <html>
@@ -48,12 +48,12 @@ const sendVerificationEmail = async (user) => {
           <body>
             <div class="container">
               <div class="header">
-                <h1>Verifică-ți Email-ul</h1>
+                <h1>Verificare Email</h1>
               </div>
               <div class="content">
                 <h2>Bună ${user.name}!</h2>
                 <p>Bun venit la TS FinVest!</p>
-                <p>Pentru a-ți activa contul și a începe să folosești toate funcționalitățile, te rugăm să-ți verifici adresa de email apăsând pe butonul de mai jos:</p>
+                <p>Pentru a-ți verifica contul, te rugăm să-ți verifici adresa de email apăsând pe butonul de mai jos:</p>
                 
                 <center>
                   <a href="${verificationLink}" 
@@ -61,20 +61,6 @@ const sendVerificationEmail = async (user) => {
                     Verifică Email-ul
                   </a>
                 </center>
-                
-                <p>Sau copiază și deschide acest link în browser:</p>
-                <p style="background: #fff; padding: 10px; border: 1px solid #ddd; word-break: break-all;">
-                  ${verificationLink}
-                </p>
-                
-                <div class="warning">
-                  <strong>Important:</strong>
-                  <ul>
-                    <li>Link-ul este valabil pentru <strong>24 de ore</strong></li>
-                    <li>Dacă nu ai creat acest cont, ignoră acest email</li>
-                    <li>După verificare vei putea folosi toate funcționalitățile platformei</li>
-                  </ul>
-                </div>
                 
                 <p>Mulțumim că te-ai alăturat TS FinVest!</p>
               </div>

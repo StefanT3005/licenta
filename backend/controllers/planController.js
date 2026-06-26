@@ -4,7 +4,7 @@ const financialCalc = require('../utils/financialCalculations');
 
 exports.createPlan = async (req, res) => {
   try {
-    const {
+    let {
       category,
       name,
       priority,
@@ -18,6 +18,13 @@ exports.createPlan = async (req, res) => {
       credit_interest_rate,
       credit_term_years
     } = req.body;
+
+    goal_amount = parseFloat(goal_amount) || 0;
+    initial_savings = parseFloat(initial_savings) || 0;
+    monthly_savings = parseFloat(monthly_savings) || 0;
+    credit_down_payment = parseFloat(credit_down_payment) || 0;
+    credit_interest_rate = parseFloat(credit_interest_rate) || 0;
+    credit_term_years = parseFloat(credit_term_years) || 0;
 
     if (!category || !name || !goal_amount || !payment_method) {
       return res.status(400).json({ message: 'Câmpuri obligatorii lipsesc' });
@@ -77,10 +84,11 @@ exports.createPlan = async (req, res) => {
         const futureValue = financialCalc.calculateFutureValue(
           monthly_savings,
           annualReturn,
-          planData.months_with_investments
+          planData.months_with_investments,
+          initial_savings || 0
         );
 
-        planData.total_invested = monthly_savings * planData.months_with_investments;
+        planData.total_invested = (initial_savings || 0 ) + monthly_savings * planData.months_with_investments;
         planData.investment_gain = financialCalc.calculateInvestmentGain(
           futureValue,
           planData.total_invested
@@ -210,6 +218,8 @@ exports.addContribution = async (req, res) => {
         const completionTarget = plan.payment_method === 'savings_plus_credit'
             ? (plan.credit_total_payment || 0) + (plan.credit_down_payment || 0)
             : plan.goal_amount;
+
+        plan.contributions.push({ amount: parseFloat(amount), note: note || '' });
 
         plan.current_amount = (plan.current_amount || 0) + parseFloat(amount);
         plan.progress_percentage = Math.min((plan.current_amount / completionTarget) * 100, 100);

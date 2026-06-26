@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, admin } = require('../middleware/authMiddleware'); // ← FOLOSEȘTE MIDDLEWARE-UL EXISTENT!
+const { protect, admin } = require('../middleware/authMiddleware'); 
 const {
   getAllUsers,
   getSystemStats,

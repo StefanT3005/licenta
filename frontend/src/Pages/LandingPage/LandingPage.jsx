@@ -208,7 +208,7 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Comparații Financiare Inteligente</h3>
               <p className="text-gray-600 leading-relaxed">
-                Vezi side-by-side diferențele între economisire simplă și investiții, sau între economisire integrală și credit bancar. Compară timp, costuri și câștiguri pentru fiecare strategie cu cifre concrete.
+                Vezi side-by-side diferența dintre economisire simplă și economisire cu investiții: timp, costuri și câștiguri, cu cifre concrete. Iar pentru achizițiile mari, calculezi costul real al unui credit bancar (rată, dobândă totală, cost final) față de prețul de pornire.              
               </p>
             </div>
 
@@ -218,7 +218,7 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Calculator Credit Bancar</h3>
               <p className="text-gray-600 leading-relaxed">
-                Calculează automat rata lunară, dobânda totală și venitul minim necesar pentru un credit. Include validare avans 25% și proiecții complete de amortizare pe toată perioada creditului.
+                Calculează automat rata lunară, dobânda totală și venitul minim necesar pentru un credit. Include validare automată a avansului minim de 25% din valoarea obiectivului.
               </p>
             </div>
 
@@ -228,7 +228,7 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Calcule Matematice Automate</h3>
               <p className="text-gray-600 leading-relaxed">
-                Formule financiare profesionale aplicate în fundal: dobândă compusă pentru investiții, amortizare pentru credite, ajustări pentru inflație. Tu vezi doar rezultate clare și ușor de înțeles.
+                Formule financiare profesionale aplicate în fundal: dobândă compusă pentru investiții și amortizare pentru credite. Tu vezi doar rezultate clare și ușor de înțeles.
               </p>
             </div>
 
@@ -248,7 +248,7 @@ const LandingPage = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Planuri Multiple Simultan</h3>
               <p className="text-gray-600 leading-relaxed">
-                Gestionează mai multe obiective financiare în paralel, cum ar fi casă, educație, pensionare, mașină. Distribuie bugetul lunar între planuri și urmărește progresul fiecăruia individual și global.
+                Gestionează mai multe obiective financiare în paralel, cum ar fi o locuință, studii sau diverse achiziții. Stabilești pentru fiecare plan cât economisești lunar și urmărești progresul individual, plus o privire de ansamblu globală în Dashboard.
               </p>
             </div>
 
@@ -384,7 +384,7 @@ const LandingPage = () => {
                 <strong className="text-gray-900">Economisirea simplă</strong> reprezintă metoda prin care pui bani deoparte fără a-i investi, deci fără nicio dobândă (randament 0%). Această metodă este cea mai sigură deoarece nu există riscul de pierdere, dar este și cea mai lentă. Pentru exemplificare, dacă îți propui un obiectiv de 50.000 de dolari și economisești 500 de dolari lunar, vei avea nevoie de aproximativ 8 ani și 4 luni pentru a atinge ținta.
               </p>
               <p>
-                <strong className="text-gray-900">Investițiile</strong> funcționează diferit prin utilizarea instrumentelor financiare precum ETF-uri, acțiuni sau obligațiuni pentru a genera dobândă compusă, cu randamente estimate între 5% și 12% anual în funcție de nivelul de risc acceptat. Continuând exemplul anterior, pentru același obiectiv de 50.000 de dolari și aceeași contribuție lunară de 500 de dolari, dar cu investiții la un randament de 7% anual, vei ajunge la țintă în aproximativ 6 ani și 8 luni. Aceasta înseamnă că economisești 20 de luni din timp și investești cu aproximativ 10.000 de dolari mai puțin din buzunar, deși există riscul de fluctuații pe termen scurt.
+                <strong className="text-gray-900">Investițiile</strong> funcționează diferit prin utilizarea instrumentelor financiare precum ETF-uri, acțiuni sau titluri de stat pentru a genera dobândă compusă, cu randamente estimate între 6% și 20% anual în funcție de nivelul de risc acceptat. Continuând exemplul anterior, pentru același obiectiv de 50.000 de dolari și aceeași contribuție lunară de 500 de dolari, dar cu investiții la un randament de 8% anual, vei ajunge la țintă în aproximativ 6 ani și 5 luni. Aceasta înseamnă că economisești aproximativ 23 de luni din timp și investești cu circa 11.500 de dolari mai puțin din buzunar, deși există riscul de fluctuații pe termen scurt.
               </p>
               <p className="text-gray-600 font-medium">
                 Platforma îți prezintă ambele opțiuni detaliat, side-by-side, astfel încât să poți decide în cunoștință de cauză ce metodă se potrivește cel mai bine situației și toleranței tale la risc.
@@ -406,7 +406,7 @@ const LandingPage = () => {
               7. Pot gestiona mai multe obiective financiare simultan?
             </h3>
             <p className="text-gray-600 leading-relaxed">
-              Absolut! Platforma permite crearea de planuri separate și independente pentru fiecare obiectiv financiar pe care îl ai (casă, mașină, educație, pensionare, fond de urgență etc.) și te ajută să îți distribui inteligent bugetul lunar între acestea. Pentru exemplificare, dacă dispui de 1.000 de dolari lunar pentru economisire, poți aloca 600 de dolari pentru avansul unei case, 300 de dolari pentru educația copiilor și 100 de dolari pentru un fond de urgență. Fiecare plan beneficiază de propriul sistem de tracking al progresului, calcule financiare separate și timeline personalizat. În Dashboard-ul central poți vizualiza progresul global pe toate planurile active, cât ai investit în total și cum se distribuie alocările tale, totul într-o singură interfață centralizată și ușor de înțeles.
+              Absolut! Platforma permite crearea de planuri separate și independente pentru fiecare obiectiv financiar pe care îl ai (o locuință, studii sau diverse achiziții) și decizi tu cât economisești lunar pentru fiecare. Pentru exemplificare, dacă dispui de 1.000 de dolari lunar, poți crea un plan cu 600 de dolari/lună pentru avansul unei case, unul cu 300 de dolari/lună pentru studii și unul cu 100 de dolari/lună pentru o altă achiziție. Fiecare plan beneficiază de propriul sistem de tracking al progresului, calcule financiare separate și timeline personalizat. În Dashboard-ul central poți vizualiza progresul global pe toate planurile active și cât ai acumulat în total, totul într-o singură interfață centralizată și ușor de înțeles.           
             </p>
           </div>
 
@@ -419,21 +419,21 @@ const LandingPage = () => {
               <div>
                 <p className="font-semibold text-gray-900 mb-2">Risc Scăzut (Conservator)</p>
                 <p className="text-sm">
-                  Acest profil prioritizează siguranța capitalului și minimizarea volatilității. Alocarea sugerată include 60% în obligațiuni guvernamentale și corporative stabile, 25% în ETF-uri cu risc scăzut și 15% în cash sau depozite bancare. Randamentul estimat este de până la 5% anual. Acest profil este ideal dacă ai nevoie de bani în interval scurt (1 până la 3 ani) sau dacă nu tolerezi fluctuații mari ale valorii investițiilor tale.
+                  Prioritizează siguranța capitalului și un randament stabil. Alocarea sugerată: 40% ETF-uri (VWCE, VUAA, VHYD, AGGG), 35% titluri de stat (Tezaur/Fidelis) și 25% acțiuni blue-chip (Microsoft, Apple, J&J, Coca-Cola). Randament estimat 6-9% anual. Ideal pentru volatilitate redusă și orizont mai scurt.                
                 </p>
               </div>
 
               <div>
                 <p className="font-semibold text-gray-900 mb-2">Risc Mediu (Echilibrat)</p>
                 <p className="text-sm">
-                  Acest profil oferă un echilibru optim între siguranță și potențial de creștere. Alocarea recomandată cuprinde 50% în ETF-uri diversificate pe sectoare multiple, 30% în acțiuni blue-chip de companii mari și stabile, 15% în obligațiuni și 5% în crypto pentru diversificare alternativă. Randamentul estimat se situează între 7% și 10% anual. Este recomandat pentru un orizont de investiție de 3 până la 7 ani și presupune o toleranță moderată la volatilitatea pieței.
+                  Echilibru între siguranță și creștere. Alocarea recomandată: 40% ETF-uri (VWCE, IWDA, VUAA, VHYD), 30% titluri de stat (Tezaur/Fidelis) și 30% acțiuni blue-chip (Microsoft, Apple, Google, Amazon). Randament estimat 8-11% anual. Pentru un orizont mediu și toleranță moderată la volatilitate.        
                 </p>
               </div>
 
               <div>
                 <p className="font-semibold text-gray-900 mb-2">Risc Ridicat (Agresiv)</p>
                 <p className="text-sm">
-                  Acest profil maximizează potențialul de creștere pe termen lung acceptând volatilitate ridicată pe termen scurt. Alocarea sugerată include 40% în acțiuni growth de companii inovatoare cu potențial mare de apreciere, 30% în crypto și active digitale, 20% în ETF-uri tematice focusate pe sectoare emergente și 10% în acțiuni blue-chip pentru stabilitate minimă. Randamentul estimat depășește 12% anual. Este potrivit pentru un orizont de investiție de peste 7 ani și necesită acceptarea completă a fluctuațiilor semnificative pe perioade scurte de timp.
+                  Maximizează potențialul de creștere acceptând volatilitate ridicată. Alocarea sugerată: 35% ETF-uri tematice (EQQQ, WTEC, IITU, XEON), 30% acțiuni growth (Nvidia, Tesla, Meta, Amazon) și 35% crypto (BTC, ETH, SOL, BNB). Randament estimat 10-20% anual. Pentru orizont lung și acceptarea fluctuațiilor mari.               
                 </p>
               </div>
               

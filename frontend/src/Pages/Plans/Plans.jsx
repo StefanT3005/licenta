@@ -163,7 +163,7 @@ const Plans = () => {
       const futureValue = futureValueFromInitial + futureValueFromPayments;
       
       const totalInvested = initial + (monthly * monthsWith);
-      const investmentGain = Math.max(0, futureValue - goal);
+      const investmentGain = Math.max(0, futureValue - totalInvested);
 
       calc = {
         ...calc,
@@ -252,6 +252,17 @@ const Plans = () => {
         toast.error('Introdu economiile lunare');
         return;
       }
+
+      const goal = parseFloat(formData.goal_amount) || 0;
+      const monthly = parseFloat(formData.monthly_savings) || 0;
+      const initial = parseFloat(formData.initial_savings) || 0;
+      const monthsNeeded = Math.ceil((goal - initial) / monthly);
+
+      if (monthsNeeded > 1200) {
+        toast.error('Suma lunară este prea mică pentru acest obiectiv (ar dura peste 100 de ani). Mărește economiile lunare.');
+        return;
+      }
+
       if (formData.payment_method === 'savings_plus_credit') {
         const downPayment = parseFloat(formData.credit_down_payment) || 0;
         const goal = parseFloat(formData.goal_amount) || 0;

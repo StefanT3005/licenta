@@ -47,7 +47,7 @@ const Profile = () => {
 
       setStats({
         totalPortfolio,
-        activePlans: plans.length
+        activePlans: plans.filter(p => p.status === 'active').length
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
