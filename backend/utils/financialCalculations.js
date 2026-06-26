@@ -29,17 +29,14 @@ exports.calculateMonthsWithInvestments = (goalAmount, monthlySavings, annualRetu
     const onePlusR = 1 + monthlyRate;
     const onePlusRn = Math.pow(onePlusR, n);
     
-    // f(n) = PV(1+r)^n + PMT * [(1+r)^n - 1] / r - FV
     const f = currentAmount * onePlusRn + 
               monthlySavings * (onePlusRn - 1) / monthlyRate - 
               goalAmount;
     
-    // f'(n) = PV * ln(1+r) * (1+r)^n + PMT * ln(1+r) * (1+r)^n / r
     const ln1r = Math.log(onePlusR);
     const df = currentAmount * ln1r * onePlusRn + 
                monthlySavings * ln1r * onePlusRn / monthlyRate;
     
-    // Newton-Raphson: n_next = n - f(n) / f'(n)
     const nNext = n - f / df;
     
     if (Math.abs(nNext - n) < tolerance) {
@@ -61,7 +58,6 @@ exports.calculateFutureValue = (monthlySavings, annualReturnRate, months, initia
     return initialAmount + (monthlySavings * months);
   }
   
-  // FV = PV(1+r)^n + PMT × [(1+r)^n - 1] / r
   const onePlusRn = Math.pow(1 + monthlyRate, months);
   const futureValueFromInitial = initialAmount * onePlusRn;
   const futureValueFromPayments = monthlySavings * (onePlusRn - 1) / monthlyRate;
