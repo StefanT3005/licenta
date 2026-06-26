@@ -129,17 +129,14 @@ const Plans = () => {
           const onePlusR = 1 + monthlyRate;
           const onePlusRn = Math.pow(onePlusR, n);
           
-          // f(n) = PV(1+r)^n + PMT × [(1+r)^n - 1] / r - FV
           const f = initial * onePlusRn + 
                     monthly * (onePlusRn - 1) / monthlyRate - 
                     goal;
           
-          // f'(n) = derivata
           const ln1r = Math.log(onePlusR);
           const df = initial * ln1r * onePlusRn + 
                      monthly * ln1r * onePlusRn / monthlyRate;
           
-          // Newton-Raphson: n_next = n - f(n) / f'(n)
           const nNext = n - f / df;
           
           if (Math.abs(nNext - n) < tolerance) {
