@@ -108,8 +108,8 @@ const Profile = () => {
   const handleDeleteAccount = async () => {
     if (!window.confirm('Sigur vrei să ștergi contul permanent? Această acțiune nu poate fi anulată!')) return;
     
-    const confirmation = window.prompt('Scrie "ȘTERGE CONTUL" pentru a confirma:');
-    if (confirmation !== 'ȘTERGE CONTUL') {
+    const confirmation = window.prompt('Scrie "CONFIRM" pentru a confirma ștergerea contului:');
+    if (confirmation !== 'CONFIRM') {
       toast.error('Confirmare eșuată');
       return;
     }

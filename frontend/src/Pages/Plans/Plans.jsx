@@ -233,11 +233,29 @@ const Plans = () => {
       toast.error('Completează categoria și numele planului');
       return;
     }
+    if (step === 1 && formData.name && !isNaN(formData.name) && parseFloat(formData.name) < 0) {
+      toast.error('Numele planului nu poate fi un număr negativ');
+      return;
+    }
+
+    if (step === 1 && parseFloat(formData.initial_savings) < 0) {
+      toast.error('Economiile existente nu pot fi negative');
+      return;
+    }
     if (step === 1 && plans.some(p => p.name.toLowerCase() === formData.name.toLowerCase())) {
-    toast.error('Exista deja un plan cu acest nume'); return;
+      toast.error('Exista deja un plan cu acest nume'); 
+      return;
     }
     if (step === 2 && !formData.goal_amount) {
       toast.error('Introdu suma necesară');
+      return;
+    }
+    if (step === 2 && parseFloat(formData.goal_amount) <= 0) {
+      toast.error('Suma țintă trebuie să fie mai mare decât 0');
+      return;
+    }
+    if (step === 2 && parseFloat(formData.goal_amount) <= parseFloat(formData.initial_savings)) {
+      toast.error('Suma țintă trebuie să fie mai mare decât economiile existente');
       return;
     }
     if (step === 3 && !formData.payment_method) {
@@ -249,13 +267,21 @@ const Plans = () => {
         toast.error('Introdu economiile lunare');
         return;
       }
+      if (formData.payment_method === 'full_savings' && parseFloat(formData.monthly_savings) <= 0 ) {
+        toast.error('Economiile lunare trebuie să fie mai mari decât 0');
+        return;
+      }
+      if (formData.payment_method === 'full_savings' && parseFloat(formData.monthly_savings) > parseFloat(formData.goal_amount)) {
+        toast.error('Economiile lunare nu pot depăși suma țintă');
+        return;
+      }
 
       const goal = parseFloat(formData.goal_amount) || 0;
       const monthly = parseFloat(formData.monthly_savings) || 0;
       const initial = parseFloat(formData.initial_savings) || 0;
       const monthsNeeded = Math.ceil((goal - initial) / monthly);
 
-      if (monthsNeeded > 1200) {
+      if (formData.payment_method === 'full_savings' && monthsNeeded > 1200) {
         toast.error('Suma lunară este prea mică pentru acest obiectiv (ar dura peste 100 de ani). Mărește economiile lunare.');
         return;
       }
@@ -267,6 +293,18 @@ const Plans = () => {
         
         if (downPayment < minimum) {
           toast.error(`Avansul minim este $${minimum.toLocaleString()} (25% din obiectiv)`);
+          return;
+        }
+        if (parseFloat(formData.monthly_savings) <= 0) {
+          toast.error('Economiile lunare pentru avans trebuie să fie mai mari decât 0');
+          return;
+        }
+        if (monthsNeeded > 1200) {
+          toast.error('Suma lunară este prea mică pentru atingerea avansului (ar dura peste 100 de ani). Mărește economiile lunare.');
+          return;
+        }
+        if (parseFloat(formData.monthly_savings) > downPayment) {
+          toast.error('Economiile lunare pentru avans nu pot depăși valoarea avansului');
           return;
         }
       }

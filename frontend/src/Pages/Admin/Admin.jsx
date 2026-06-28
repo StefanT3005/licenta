@@ -14,8 +14,10 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -34,7 +36,6 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-
       const statsRes = await api.get('http://localhost:8000/api/admin/stats', { headers });
       setStats(statsRes.data);
 
@@ -47,6 +48,8 @@ const AdminDashboard = () => {
       console.error('Admin data fetch error:', error);
       if (error.response?.status === 403) {
         toast.error('Acces interzis. Necesită permisiuni de administrator.');
+        navigate('/');
+        return;
       } else {
         toast.error('Eroare la încărcarea datelor');
       }

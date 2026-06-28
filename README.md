@@ -178,7 +178,7 @@
   PORT=8000
 
   # MongoDB
-  MONGO_URI=mongodb://localhost:27017/tsfinvest
+  MONGO_URI=cheie_secreta
 
   # JWT
   JWT_SECRET=cheie_secreta
@@ -196,7 +196,7 @@
 
   ### Cum obții variabilele
 
-  - **MONGO_URI**: dacă rulezi MongoDB local, lasă valoarea de mai sus. Dacă folosești MongoDB Atlas, copiază connection string-ul din panoul de cluster.
+  - **MONGO_URI**: din MongoDB Atlas, copiază connection string-ul din panoul de cluster.
   - **JWT_SECRET**: generează un string lung și random (minim 32 caractere).
   - **EMAIL_PASSWORD**: din contul Google, secțiunea Security, 2-Step Verification, App passwords. Nu folosi parola contului tău Gmail.
   - **NEWS_API_KEY**: înregistrare gratuită la [newsapi.org](https://newsapi.org/).

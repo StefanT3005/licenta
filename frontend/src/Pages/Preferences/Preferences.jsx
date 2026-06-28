@@ -164,7 +164,6 @@ const Preferences = () => {
                   name="budget_monthly"
                   value={formData.budget_monthly}
                   onChange={handleChange}
-                  min="0"
                   step="0.01"
                   placeholder="500"
                   required

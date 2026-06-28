@@ -18,7 +18,6 @@ import News from './Pages/News/News';
 import Admin from './Pages/Admin/Admin';
 import VerifyEmail from './Pages/VerifyEmail/VerifyEmail';
 
-
 const App = () => {
   return (
     <div>
