@@ -281,9 +281,18 @@ const Plans = () => {
       const initial = parseFloat(formData.initial_savings) || 0;
       const monthsNeeded = Math.ceil((goal - initial) / monthly);
 
-      if (formData.payment_method === 'full_savings' && monthsNeeded > 1200) {
-        toast.error('Suma lunară este prea mică pentru acest obiectiv (ar dura peste 100 de ani). Mărește economiile lunare.');
-        return;
+      if (formData.payment_method === 'full_savings') {
+        
+        if (!formData.with_investments && monthsNeeded > 1200) {
+          toast.error('Suma lunară este prea mică pentru acest obiectiv (ar dura peste 100 de ani). Mărește economiile lunare.');
+          return;
+        }
+
+        if (formData.with_investments && calculations.monthsWith > 1200) {
+          toast.error('Suma lunară este prea mică pentru acest obiectiv chiar și cu investiții (ar dura peste 100 de ani). Mărește economiile lunare.');
+          return;
+        }
+
       }
 
       if (formData.payment_method === 'savings_plus_credit') {
@@ -293,6 +302,10 @@ const Plans = () => {
         
         if (downPayment < minimum) {
           toast.error(`Avansul minim este $${minimum.toLocaleString()} (25% din obiectiv)`);
+          return;
+        }
+        if (downPayment > goal) {
+          toast.error(`Avansul trebuie să fie mai mic decât goal-ul în valoare de $${goal.toLocaleString()}`);
           return;
         }
         if (parseFloat(formData.monthly_savings) <= 0) {
@@ -305,6 +318,11 @@ const Plans = () => {
         }
         if (parseFloat(formData.monthly_savings) > downPayment) {
           toast.error('Economiile lunare pentru avans nu pot depăși valoarea avansului');
+          return;
+        }
+        const rate = parseFloat(formData.credit_interest_rate);
+        if (!rate || rate <= 0 || rate > 100) {
+          toast.error('Dobânda anuală trebuie să fie între 0.1% și 100%');
           return;
         }
       }
